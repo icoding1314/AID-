@@ -1,0 +1,42 @@
+自我介绍
+一阶段：魏明择
+		email: weimz@tedu.cn
+	履历：
+	    水利水电动力工程
+	    01 国企
+	    02 PLC (IL, ST, FBD, LADDER)
+	    04 文曲星 <<英雄坛说>>
+	    05 诺亚舟 
+	    08-12 医疗电子
+	    12 IT教育
+	Python 基础高级
+
+王伟超
+wangweichao@tedu.cn
+	mysql 
+吕泽
+lvze@tedu.cn
+
+	网络编程  3 
+	进程线程  4.5
+	网络 + 进程线程  1.5
+	MongoDB  4
+	regex   1.5
+	Git
+	项目编程  2.5
+
+	难点 ：  IO多路复用
+	        项目编写
+			多任务编程理解	
+
+赵蒙蒙
+g-zhaomm@tedu.cn
+	Web : HTML CSS Javascript
+
+
+赵旭
+zhaoxu@tedu.cn
+	Flask 轻量级 WEB 框架
+	AJAX 阿贾克斯 ，在web中主要完成 异步的请求和响应
+	Django 重量级 WEB 框架
+

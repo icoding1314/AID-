@@ -1,0 +1,147 @@
+1. osi七层模型 ---》 四层  五层
+2. 三次握手四次挥手
+3. tcp和udp区别
+
+网络概念 ： 主机   端口    ip    协议
+  服务端  localhost / 127.0.0.1
+	客户端  只是在本机启动客户端 用127.0.0.1访问
+	
+	服务端  0.0.0.0
+	客户端  可以在本机用127.0.0.1 、172.60.50.181访问
+	局域网内 用 172.60.50.181 访问
+	
+	服务端  172.60.50.181
+	客户端  局域网内用  172.60.50.181访问
+	
+套接字 socket
+
+  流式套接字  --》 tcp   可靠地  有连接
+  数据报套接字  --》 udp  不可靠  无连接
+
+tcp 服务端
+socket  --》 bind  --》 listen --》 accept  --》 recv/send --> close
+
+tcp套接字
+  1. 网络缓冲区
+  2. 粘包
+
+udp 套接字
+  服务端  socket（AF_INET,SOCK_DGRAM）
+          bind（）
+  	      recvfrom()   sendto()
+  客户端  socket   recvfrom   sendto
+
+tcp编程和udp编程的区别
+
+套接字属性
+  fileno()   getpeername()   setsockopt()
+
+广播 ： 一端发送多端接受  ---》udp
+
+HTTP协议
+
+  请求类型 ： GET  POST   PUT   HEAD  DELETE
+      格式 ：    GET   /   HTTP/1.1
+
+  响应类型 ： 2xx  4xx  5xx
+      格式 ：    HTTP/1.1   200  OK
+
+1. httpserver （http协议 + tcp套接字）
+  * 接收浏览器发来的请求 （HTTP请求）
+  * 查看请求内容
+  * 组织http响应子串
+  * 将内容发送给浏览器显示
+2. IO 形态
+    阻塞IO ： 默认IO 遇到条件阻塞或者传输阻塞会暂停程序运行。效率低
+    非阻塞IO ：设置属性或者设置超时检测 / 效率提升
+    
+3.IO多路复用 
+	目的 ： 在程序中有多个 IO事件的时候，同时监控，哪个能够执行就执行哪个，提高效率
+	方法 ： select  poll  epoll
+	      设置要监控的io。阻塞等待IO事件发生。哪个发生就处理哪个IO
+
+1. epoll 实现IO多路复用
+2. 本地套接字：   AF_UNIX
+    作用 ： 本地进程间的通信
+3. 多任务编程
+4. 多进程
+    进程特征 : 最小的资源分配单元
+               独立的空间
+	             互不影响的运行状态
+    进程状态(三态) ： 就绪态   运行态   等待态
+    进程状态(五态) ： 就绪态   运行态   等待态  开始  结束
+5.  创建进程
+    os.fork()
+    os.getpid()   os.getppid()
+    os._exit()    sys.exit()
+
+1.孤儿进程  僵尸进程
+2.聊天室
+3.multiprocessing
+  Process   start   join
+
+1 进程对象 p
+  p.name  进程名
+  p.pid   新进程的PID
+  p.is_alive()  查看进程状态
+  p.daemon  
+
+2 自定义进程类
+  继承Process   重写run
+
+3 进程池   避免大量进程频繁的创建删除
+     Pool() 创建进程池
+	   apply_async()  添加时间
+	   close()  关闭进程池
+	   join()  回收进程池
+	   map()
+4. 进程间通信
+   管道 --》 Pipe（）
+   消息队列 --》 Queue（） ---》 q
+                q.put   q.get  q.full  q.empty
+		q.qsize  q.close
+   共享内存 --》 Value   Array
+
+信号 ：在进程间通过信号传递讯息
+    os.kill(pid,sig)  发送信号
+    signal.alarm(sec) 设置时钟
+    signal.pause() 阻塞等待
+    signal.signal(sig,handler)  处理信号
+                      SIG_DFL
+		                  SIG_IGN
+		  fun(sig,frame)
+
+信号量  semaphore
+  acquire()  消耗一个信号量
+  release()  添加一个信号量
+  get_value() 获取信号量的值
+
+同步互斥机制
+  Event
+  Lock
+
+多线程编程
+  threading 创建线程
+  线程对象属性
+  自定义线程
+
+线程
+    线程通信 ---》 全局变量
+		线程的同步互斥 --》 Event  Lock
+		python  GIL问题  ---》 python线程效率低下
+
+线程和进程  区别和联系
+
+服务器模型 ： 
+  循环模型
+		每次只能处理一个客户端的请求
+
+  并发模型
+      IO并发 ： IO多路复用  协程
+  		多进程、多线程并发
+  		    每当有一个客户端就创建一个新的进程或者线程
+多进程并发
+
+fork + tcp
+
+文件服务器  	      

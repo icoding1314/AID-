@@ -1,0 +1,145 @@
+Day04回顾
+1、lxml解析库
+  1、使用流程
+    1、from lxml import etree
+    2、parseHtml = etree.HTML(html)
+    3、parseHtml.xpath('xpath表达式')
+  2、xpath匹配规则
+    1、获取节点对象 ： //div[@class="Tiger"]
+    2、获取节点属性值 ：//div[@class="T"]//a/@src
+    3、函数 ：//div[contains(@class,"aa")]//a/@href
+  3、xpath高级
+    1、基准xpath表达式(节点对象列表)
+    2、for r in [节点对象列表]:
+           username = parseHtml.xpath('./xpath表达式')
+	   ... ...
+*****************************
+Day05笔记
+1、json模块
+  1、什么是json?
+    javascript中的对象和数组
+    对象 ：{key:value}  取值：对象名.key
+    数组 ：[...,...]	取值：数组[索引值]
+  2、作用
+    json格式的字符串 和 Python数据类型 之间的转换
+  3、常用方法
+    1、json.loads() : json格式 --> Python数据类型
+              json      python
+	      对象      字典
+	      数组      列表
+      见 01_json.loads示例.py
+    2、json.dumps() : Python数据类型 --> json格式
+              python       json
+	      字典         对象
+	      列表         数组
+	      元组         数组
+      ## 注意
+        1、json.dumps()默认使用ascii编码
+	2、添加参数ensure_ascii=False,禁用ascii编码
+2、动态网站数据抓取 - Ajax
+  1、特点 ：滚动鼠标滑轮时加载
+  2、案例 ：豆瓣电影排行榜数据抓取
+    1、抓取目标 ：豆瓣电影 - 排行榜 - 剧情 
+                  电影名称 、评分
+    2、代码实现
+3、selenium + phantomjs 强大的网络爬虫组合
+  1、selenium
+    1、定义 ：Web自动化测试工具,应用于Web自动化测试
+    2、特点
+      1、可以运行在浏览器,根据指定命令操作浏览器,让浏览器自动加载页面
+      2、只是工具,不支持浏览器功能,需要与第三方浏览器结合使用
+  2、phantomjs
+    1、定义 ：无界面浏览器(无头浏览器)
+    2、特点
+      1、把网站加载到内存进行页面加载
+      2、运行高效
+    3、安装
+      1、Windows
+        1、将下载的可执行文件放到Python安装目录的Scripts目录下
+	  C:\Python36\Scripts
+      2、Ubuntu
+        1、将下载的phantomjs放到一个路径下
+	2、添加环境变量：
+	  vi .bashrc 添加
+	  export PHANTOM_JS=/home/.../phantomjs-2.1.1-...
+	  export PATH=$PHANTOM_JS/bin:$PATH
+	  终端：source .bashrc
+	  终端：phantomjs
+  3、示例代码
+    1、示例代码1 : 见05_phantomjs+selenium示例1.py
+    2、示例代码2 : 见06_phantomjs+selenium示例2.py
+  4、常用方法
+    1、driver.get(url)
+    2、driver.page_source : 获取响应的html源码
+    3、driver.page_source.find("字符串")
+      1、作用 ：从html源码中搜索指定字符串
+         -1	：查找失败
+	 非-1   ：查找成功
+    4、单元素查找
+      1、driver.find_element_by_id("").text
+      2、driver.find_element_by_class_name("")
+      3、driver.find_element_by_xpath('xpath表达式')
+      4、如果匹配到多个节点,则只返回第1个节点对象
+    5、多元素查找
+      1、driver.find_elements_by_....
+      2、注意
+        1、如果结果1个,则返回节点对象,不是列表
+	2、如果结果N个,则返回列表
+      3、示例见 ：08_driver.find查找元素示例.py
+    6、对象名.send_keys("内容")
+    7、对象名.click()
+  5、案例1 ：登录豆瓣网站
+    见 ：09_selenium+Chrome登陆豆瓣案例.py
+  6、操作键盘
+    1、导模块
+      from selenium.webdrier.common.keys import Keys
+    2、常用方法
+      见 ：10_driver操作键盘示例.py
+  7、案例2 ：斗鱼直播网站主播信息抓取(JS分页加载)
+    代码见 ：11_斗鱼直播抓取案例.py
+    1、抓取目标 ：主播名称 、观众人数
+      1、主播 ：class -> dy-name ellipsis fl
+        //div[@id="live-list-content"]//span[@class="dy-name ellipsis fl"]
+
+      2、人数 ：class -> dy-num fr
+        //div[@id="live-list-content"]//span[@class="dy-num fr"]
+
+      3、下一页按钮(能点) ：class -> shark-pager-next
+      4、下一页按钮(不能点)
+        class -> shark-pager-next shark-pager-disable shark-pager-disable-next
+  8、Chromdriver如何设置无界面模式
+    1、opt = webdriver.ChromeOptions()
+    2、opt.set_headless()
+    3、driver = webdriver.Chrome(options=opt)
+    4、driver.get(url)
+  9、案例3 ：京东商品爬取
+    1、目标
+      1、商品名称
+      2、商品价格
+      3、评论数量
+      4、商家名称
+    2、代码实现
+      
+
+
+
+
+
+     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

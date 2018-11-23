@@ -1,0 +1,30 @@
+快捷方式：render()   [加载模板、传递参数，返回HttpResponse对象]
+
+	在实际运用中，加载模板、传递参数，返回HttpResponse对象是一整套再常用不过的操作了，为了节省力气，Django提供了一个快捷方式：render函数，一步到位！看如下代码：
+
+	polls/views.py
+
+	from django.shortcuts import render
+	from .models import Question
+	def index(request):
+	    latest_question_list = Question.objects.order_by('-pub_date')[:5]
+	    context = {'latest_question_list': latest_question_list}
+	    return render(request, 'polls/index.html', context)
+	render()函数的第一个位置参数是请求对象（就是view函数的第一个参数），第二个位置参数是模板。还可以有一个可选的第三参数，一个字典，包含需要传递给模板的数据。最后render函数返回一个经过字典数据渲染过的模板封装而成的HttpResponse对象。
+快捷方式：get_object_or_404()
+
+	就像render函数一样，Django同样为你提供了一个偷懒的方式，替代上面的多行代码，那就是get_object_or_404()方法，参考下面的代码：
+
+	polls/views.py
+
+	from django.shortcuts import get_object_or_404, render
+	from .models import Question
+	# ...
+	def detail(request, question_id):
+	    question = get_object_or_404(Question, pk=question_id)
+	    return render(request, 'polls/detail.html', {'question': question})
+	别说我没提醒你，和render一样，也需要从Django内置的快捷方式模块中导出get_object_or_404()！
+
+	get_object_or_404()方法将一个Django模型作为第一个位置参数，后面可以跟上任意个数的关键字参数，如果对象不存在则弹出Http404错误。
+
+	同样，还有一个get_list_or_404()方法，和上面的get_object_or_404()类似，只不过是用来替代filter()函数，当查询列表为空时弹出404错误。（filter是模型API中用来过滤查询结果的函数，它的结果是一个列表集。而get则是查询一个结果的方法，和filter是一个和多个的区别！）

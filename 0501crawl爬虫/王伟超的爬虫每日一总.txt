@@ -1,0 +1,332 @@
+Day01回顾
+1、请求模块(urllib.request)
+  1、Request(url,data=data,headers=headers)
+  2、urlopen(请求对象)
+2、响应对象res的方法
+  1、res.read() ##数据类型：bytes
+     res.read().decode("utf-8") ## 数据类型 ：string
+  2、res.getcode()
+  3、res.geturl()
+3、url编码模块(urllib.parse)
+  1、urlencode(字典) 
+    原始数据 ：kw={"kw":"只手遮天"}
+    urlencode后 ：kw=%e8%e5%d3...  #字符串
+  2、quote(字符串)
+    s = "只手遮天"
+    quote后：%e8%e5%d3...
+  3、unquote()
+4、数据爬取步骤
+  1、找URL(拼接)
+  2、获取响应内容
+  3、保存
+5、请求方式
+  1、GET ：查询参数在URL地址上显示
+  2、POST(参数名data) ：查询参数在Form表单里
+    注意：data一定要为bytes数据类型
+      data = {....}
+      data = urlencode(data)  # 字符串
+      data = bytes(data,"utf-8") # 字符串 -> 字节流
+      data.encode("utf-8")
+
+*******************************
+Day02回顾
+1、关于正则解析
+  1、分组(想要抓取什么内容就加小括号())
+  2、正则方法
+    p = re.compile('....')
+    r_list = p.findall(html)
+    结果 ：[(),(),(),()]
+  3、贪婪匹配 ： .*
+  4、非贪婪匹配 ：.*?
+2、抓取步骤
+  1、找URL
+  2、写正则表达式
+  3、定义类,写程序框架
+  4、补全代码
+3、存入csv文件
+  import csv
+  with open("XXX.csv","a",newline="",encoding="..") as f:
+      writer = csv.writer(f)
+      writer.writerow([...,...,...])
+4、Fiddler常用菜单
+  1、Inspector ：请求、响应两部分
+  2、常用选项
+    1、Headers
+    2、WebForms
+    3、Raw ：请求 --> 纯文本
+5、cookie和session
+  cookie ：客户端
+  session ：Web服务器端
+6、请求方式
+  1、GET
+  2、POST
+  3、Cookie模拟登陆
+    1、先登陆成功1次,利用抓包工具抓取到Cookie
+    2、将Requset Header(包含cookie)处理为字典,作为参数发请求
+7、安装模块
+  1、Aanconda Prompt ：conda install 模块名
+  2、Windows cmd     ：python -m pip install 模块名
+8、requests模块
+  1、get(url,params=params,headers=headers)
+     params : 查询参数,字典,不用编码,不用URL拼接
+  2、post(url,data=data,headers=headers)
+     data ：Form表单数据,字典,不用编码,不用转码
+  3、响应对象属性
+    1、encoding ：响应字符编码,res.encoding="utf-8"
+    2、text     ：字符串
+    3、content  ：字节流
+    4、status_code ：响应码
+    5、url      ：返回实际数据的URL
+  4、非结构化数据保存
+    html = res.content
+    with open("XXX","wb") as f:
+        f.write(html)      
+Day03回顾
+1、requests模块方法
+  1、get()参数
+    1、查询参数 ：params -> 字典
+    2、代理 ：proxies -> 字典
+      1、普通代理 ：{"协议":"协议://IP地址:端口号"}
+      2、私密代理 
+        {"协议":"协议://用户名:密码@IP地址:端口号"}
+    3、Web客户端验证 ：auth -> 元组
+      auth = ("tarenacode","code_2013")
+    4、SSL证书认证 ：verify -> 默认True
+    5、timeout
+  2、post()方法
+    1、data -> 字典,Form表单数据
+  3、响应对象属性
+    1、text -> 字符串
+    2、encoding -> res.encoding = "utf-8"
+    3、content -> 字节流
+    4、status_code -> 服务器响应码
+2、数据持久化存储
+  1、MySQL流程
+    1、db = pymysql.connect("localhost",.....,"库名",charset="utf8")
+    2、cursor = db.cursor()
+    3、cursor.execute("sql命令",[])
+    4、db.commit()
+    5、cursor.close()
+    6、db.close()
+  2、mongodb流程
+    1、conn = pymongo.MongoClient("localhost",27017)
+    2、db = conn.库名
+    3、myset = db.集合名
+    4、myset.insert(字典)
+    终端操作：
+    1、mongo
+    2、show dbs
+    3、use 库名
+    4、show tables
+    5、db.集合名.find().pretty()
+    6、退出为:exit
+3、Handler处理器(urllib库中)
+  1、使用流程
+    1、创建Handler ：ProxyHandler(普通代理IP)
+    2、创建opener  ：build_opener(Handler)
+    3、发请求      ：opener.open(request)
+  2、ProxyHandler
+    1、ph = urllib.request.ProxyHandler({"http":"IP:.."})
+    2、opener = urllib.request.bulid_opener(ph)
+    3、req = urllib.request.Request(url,headers=...)
+    4、res = opener.open(req)
+    5、html = res.read().decode("utf-8")
+  3、Handler处理器分类
+    1、ProxyHandler({普通代理IP})
+    2、ProxyBasicAuthHandler(密码管理器对象)
+    3、HTTPBasicAuthHandler(密码管理器对象)
+    4、流程
+      1、创建
+        pwdmg = urllib.request.HTTPPasswordMgrWith...()
+      2、添加认证信息
+        pwdmg.add_password(None,
+                     {"协议":"IP:..},"user","pwd")
+      3、Handler开始
+
+******************************************************************
+Day04回顾
+1、lxml解析库
+  1、使用流程
+    1、from lxml import etree
+    2、parseHtml = etree.HTML(html)
+    3、parseHtml.xpath('xpath表达式')
+  2、xpath匹配规则
+    1、获取节点对象 ： //div[@class="Tiger"]
+    2、获取节点属性值 ：//div[@class="T"]//a/@src
+    3、函数 ：//div[contains(@class,"aa")]//a/@href
+  3、xpath高级
+    1、基准xpath表达式(节点对象列表)
+    2、for r in [节点对象列表]:
+           username = parseHtml.xpath('./xpath表达式')
+     ... ...
+
+**********************************************
+Day05回顾
+1、json模块
+  1、json.loads() 
+    json格式(对象、数组) -> Python(字典、列表)
+  2、json.dumps()
+    Python(字典、元组、列表) -> json(对象、数组)
+2、Ajax动态加载
+  1、抓包工具抓参数 ：WebForms -> QueryString
+  2、params = {QueryString中的一堆查询参数}
+  3、URL地址写 ：抓包工具Raw下的GET地址
+3、selenium+phantomjs
+  1、selenium : Web自动化测试工具
+  2、phantomjs ：无界面浏览器(在内存执行页面加载)
+  3、使用步骤
+    1、导入模块
+      from selenium import webdriver
+      from selenium.webdriver.common.keys import Keys
+    2、创建浏览器对象
+      driver = webdriver.PhantomJS(executable_path="...")
+    3、获取网页信息
+      driver.get(url)
+    4、查找节点位置
+      ele = driver.find_element_by_id("")
+    5、发送文字
+      ele.send_keys("")
+    6、点击
+      cli = driver.find_element_by_class_name("")
+      cli.click()
+    7、关闭
+      driver.quit()
+  4、常用方法
+    1、driver.get(url)
+    2、driver.page_source
+    3、driver.page_source.find("字符串")
+      失败 ：-1
+      成功 ：非-1
+    4、driver.find_element_by_name("属性值")
+    5、driver.find_elements_by_xpath("xpath表达式")
+    6、对象名.send_keys("")
+    7、对象名.click()
+    8、对象名.text
+    9、driver.quit()
+4、selenium+chromedriver
+  1、chromedriver
+    Chrome的Webdriver
+  2、安装
+    1、下载对应版本的chromedriver安装包
+      https://chromedriver.storage.googleapis.com/index.html
+    2、将 chromedriver.exe 放到python安装目录的Scripts目录
+  3、如何设置无界面模式
+    opt = webdriver.ChromeOptions()
+    opt.set_headless()
+
+    driver = webdriver.Chrome(options=opt)
+    driver.get(...)
+  4、driver如何执行javascript
+    driver.execute_script('window.scrollTo(0,document.body.scrollHeight)')
+
+***************************************************************
+Day06回顾
+1、多线程爬虫
+  1、多进程线程应用场景
+    1、多进程 ：大量密集并行计算
+    2、多线程 ：I/O密集(网络I/O、本地磁盘I/O)
+  2、多线程爬虫
+    1、URL队列 ：put(url)
+    2、RES队列 ：从URL队列中get()发请求,put(html)
+    3、创建多个RES线程,发请求获取html
+    4、创建多个解析线程,解析html
+2、BeautifulSoup ：HTML/XML解析库
+  1、使用流程
+    1、导入模块 ：from bs4 import BeautifulSoup as bs
+    2、创建对象 ：soup = bs(html,'lxml')
+    3、查找节点 ：soup.find_all(id="test")
+  2、支持解析库
+    1、lxml        ：快,文档容错能力强
+    2、html.parser ：一般
+    3、xml         ：快,文档容错能力强
+  3、常用方法
+    1、find_all() ：列表
+      1、r_list = soup.find_all(class_="test")
+      2、r_list = soup.find_all("div",attrs={"class":"a"})
+    2、节点对象方法
+      1、get_text()
+      2、string
+3、scrapy框架
+  1、异步处理框架
+  2、组成
+    Engine、Scheduler、Downloader、Spider、Item Pipeline、Downloader Middlewares、Spider Middlewares
+  3、运行流程
+    1、Engine开始统揽全局,向Spider索要URL
+    2、Engine拿到url后,给Scheduler入队列
+    3、Schduler从队列中拿出url给Engine,通过Downloader Middlewares给Downloader去下载
+    4、Downloader下载完成,把response给Engine
+    5、Engine把response通过Spider Middlewares给Spider
+    6、Spider处理完成后,
+      把数据给Engine,交给Item Pipeline处理,
+      把新的URL给Engine,重复2-6步
+    7、Scheduler中没有任何Requests请求后,程序结束
+  4、创建项目流程
+    1、scrapy startproject Lianjia
+    2、cd Lianji/Lianjia
+    3、定义爬取数据结构 ：subl items.py
+      import scrapy
+      class LianjiaItem(scrapy.Item):
+          houseName = scrapy.Field()
+          totlePrice = scrapy.Field()
+    4、cd spiders
+    5、scrapy genspider lianjiaspider lianjia.com
+      class LianjiaspiderSpider():
+          name = "lianjiaspider"
+          allow_domains = ["lianjia.com"]
+          start_urls = [""]
+          def parse(self,response):
+            ... 
+    6、项目管道 ：subl pipelines.py
+      class LianjiaPipeline(object):
+          def process_item(self,item,spider):
+            return item
+    7、全局配置 ：subl settings.py
+      ROBOTSTXT_OBEY=False
+      ITME_PIPELINES={'Lianjia.pipelines.LianjiaPipeline':100}
+      DEFAULT_REQUEST_HEADERS={"User-Agent":"Mozilla/5.0"}
+    8、cd spiders -> scrapy crawl lianjiaspider
+
+**************************************************
+Day07回顾
+1、response.xpath('xpath表达式')
+  xpath表达式没有text()则结果为选择器对象
+  xpath表达式加上text()则结果为选择器文本对象
+  extract()将列表中所有元素序列化为Unicode字符串
+2、MongoDB持久化存储
+  1、settings.py设置相关变量
+    MONGODB_HOST = "localhost"
+    MONGODB_PORT = 27017
+    MONGODB_DBNAME = "daomudb"
+    MONGODB_DOCNAME = "daomubiji"
+  2、pipelines.py写程序
+    import pymongo
+    from Daomu import settings
+    class DaomuPipeline(object):
+        def __init__(self):
+      host = settings.MONGODB_HOST
+      port = settings.MONGODB_PORT
+      dbName = settings.MONGODB_DBNAME
+      docName = settings.MONGODB_DOCNAME
+      conn = pymongo.MongoClient(host=host,port=port)
+      exec("db=conn." + dbName)
+      exec("self.myset=db."+docName)
+  3、settings.py中添加项目管道
+    ITEM_PIPELINES = {"项目名.pipelines.类名":300}
+4、MySQL
+  1、settings.py中设置相关变量
+  2、pipelines.py中定义相关类
+  3、settings.py中添加项目管道
+5、Scrapy模块方法
+  yield scrapy.Request(url,callback=解析方法名)
+
+*********************************************************
+day08 回顾
+1、如何设置随机User-Agent
+2、设置代理(DOWNLOADER MIDDLEWARES)
+3、图片管道 ：ImagePipeline
+4、ImagePipeline的使用方法
+5、dont_filter参数：对URL进行去重
+6、Scrapy对接selenium+phantomjs
+7、Scrapy模拟登陆
+8、机器视觉与tesseract
+9、分布式介绍

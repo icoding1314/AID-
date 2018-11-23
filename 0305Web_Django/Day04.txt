@@ -1,0 +1,207 @@
+1.模板的继承
+	1.父模板
+		{% block 名称 %}
+		{% endblock %}
+	2.子模板
+		1.指定继承模板
+			{% extends '父模板名称' %}
+		2.编写要覆盖的内容
+			{% block 名称 %}
+			{% endblock %}
+2.url() 的name属性 - 反向解析
+	1.为 url 的name属性赋值
+		url(r'',views,name='名称')
+		1.模板中反向解析
+			{% url 'name值' '参数1' '参数3' %}
+		2.视图中反向解析
+			url=reverse('name值',args=('参数1','参数2'))
+3.创建模型
+	class ClassName(models.Model):
+		属性名=models.字段类型(字段选项)
+
+		字段类型：
+			1.CharField(max_length=50)
+			2.IntegerField()
+			3.FloatField()
+			4.DecimalField(max_digits=7,decimal_places=2)
+			5.EmailField()
+			6.URLField()
+			7.ImageField()
+			8.DateField()
+			9.DateTimeField()
+			10.BooleanField()
+		字段选项：
+			1.default
+			2.null
+			3.db_column
+4.相关指令
+	1.版本切换
+		./manage.py migrate 应用名称 版本号
+	2.通过数据库自动导出models类
+		./manage.py inspectdb > 文件名.py
+========================================================
+1.模型中的CRUD
+	1.增加数据
+		1.Entry.objects.create(属性=值,属性=值)
+			返回值：创建好的实体对象
+		2.创建一个 Entry 对象，并通过 save() 进行保存
+			obj = Entry(属性=值,属性=值)
+			obj.属性 = 值
+			obj.save()
+			无返回值，保存成功后，obj会被重新赋值
+		3.使用字典构建对象，并通过 save() 进行保存
+			dic = {
+				'属性1':'值1',
+				'属性2':'值2',
+			}
+
+			obj=Entry(**dic)
+			obj.save()
+		
+		练习：
+			使用插入数据的三种实现方式，分别向 Book,Publisher三个实体表中各增加3条数据
+	2.查询数据(重难点)
+		通过 Entry.objects 调用查询接口函数
+			ex : 
+				Entry.objects.filter()
+				Entry.objects.exclude()
+		所有的查询接口函数，都可以通过一个 query 属性来得到对应的sql语句
+			Entry.objects.filter().query
+
+		1.基本查询操作
+			语法：all()
+			用法：Entry.objects.all()
+			返回：QuerySet(查询结果集,是一个封装了若干对象的列表)
+		2.查询返回指定列
+			语法：values() | values('列1','列2',...)
+			作用：查询一个QuerySet中的部分列，并封装成字典，再放到列表中
+			用法：
+				Entry.objects.values()
+				Entry.objects.values('列1','列2')
+
+				也允许将values() 放在其他返回查询结果集的方法的后面
+				Entry.objects.all().values()
+				Entry.objects.filter().values()
+		3.查询返回指定列
+			语法：values_list()
+			作用：将结果封装到元组中再封装到列表中
+			用法：同 values
+		4.只查询一条数据
+			语法：get(条件)
+			作用：查询只返回一条数据
+			用法：Entry.objects.get(条件)
+			注意：
+				该方法只能查询一条数据
+				查询多于一条数据或没查询出结果的话那么都会抛异常
+		5.根据条件查询部分行数据
+			语法：filter(条件)
+			用法：Entry.objects.filter(条件)
+			ex:
+				1.想查询id为1的Author的信息
+					Author.objects.filter(id=1)
+				2.想查询id为1，并且name为隔壁老王的信息
+					Author.objects.filter(id=1,name='隔壁老王')
+					注意：
+						1.多条件，使用  ,   隔开即可
+						2.用 ,  隔开的条件，映射到sql中是使用 and 来连接的
+				3.想查询age 大于等于 30 的 author 的信息
+					Author.objects.filter(age>=30) #错误
+				
+				在条件查询中，Django提供了若干查询谓词(Field Looups),可以完成非等值条件的查询
+				Entry.objects.filter(属性__查询谓词=值)
+				所有支持条件查询的位置处都支持查询谓词：
+					filter(),get(),exclude()
+
+				练习：
+					1.查询出age大于等于30的Author的信息
+						Author.objects.filter(age__gte=30)
+					2.查询出所有姓 "王" 的Author的信息
+						Author.objects.filter(name__startswith='王')
+					3.查询出所有email中包含"wang"的Author的信息
+						Author.objects.filter(email__contains='wang')
+		6.对条件取反
+			语法：exclude(条件)
+			用法：Entry.objects.exclude(条件)
+			ex:
+				Author.objects.exclude(id=1)
+				select * from index_author where not(id=1)
+
+				Author.objects.exclude(id=1,age__lt=30)
+				select * from index_author where  not (id=1 and age < 30)
+		7.聚合查询(不带分组)
+			语法：aggregate()
+			语法：
+				Entry.objects.all().aggregate(名=聚合函数('列'))
+			ex:
+				Author.objects.all().aggregate(avg=Avg('age'))
+
+			聚合函数：
+				1.Avg() : 平均值
+				2.Count() ：数量
+				3.Sum() : 求和
+				4.Min() : 最小值
+				5.Max() : 最大值
+		8.聚合查询(带分组)
+			语法：annotate()
+			用法：Entry.objects.all().values('列1','列2').annotate(列=聚合函数()).values('列1','列2')
+		9.排序查询
+			语法: order_by()
+			用法：Entry.objects.order_by('列1','-列2')
+				默认是升序排序，列名前加 - 则表示降序排序
+	3.修改
+		1.修改单个实体
+			1.查
+				通过 get() 得到要修改的实体对象
+			2.改
+				通过对象的属性修改对象的值
+			3.保存
+				通过对象的save()保存回数据库
+		2.批量修改数据
+			调用QuerySet的update(属性=值,属性=值)实现批量修改
+	4.删除
+		调用实体对象/查询结果集的 delete() 完成删除
+		1.删除单个对象
+			au = Author.objects.get(id=1)
+			au.delete()
+		2.删除多个对象
+			ex:删除Author表中isActive的值为False的所有数据
+				auList = Author.objects.filter(isActive=False)
+				auList.delete()
+
+
+
+
+
+
+
+
+
+
+效果：查询 Author表中所有的数据显示在网页上
+	姓名   年龄   邮箱    操作
+	王老师 32    xxxx@xx  删除 修改
+	... .. ..    ...      .........
+
+
+
+
+
+SELECT `index_author`.`id`, `index_author`.`name`, `index_author`.`age`, `index_author`.`email`, `index_author`.`isActive` FROM `index_author`
+
+Author.objects.all()
+<QuerySet [<Author: Author object>, <Author: Author object>, <Author: Author object>]>
+
+Author.objects.values()
+<QuerySet [{'isActive': True, 'name': '王老师', 'age': 32, 'id': 1, 'email': 'wang.wc@163.com'}, {'isActive': True, 'name': '隔壁老王', 'age': 32, 'id': 2, 'email': 'laowang.gebi@163.com'}, {'isActive': False, 'name': '超哥哥', 'age': 32, 'id': 3, 'email': 'brother_chao@163.com'}]>
+
+Author.objects.values_list()
+<QuerySet [(1, '王老师', 32, 'wang.wc@163.com', True), (2, '隔壁老王', 32, 'laowang.gebi@163.com', True), (3, '超哥哥', 32, 'brother_chao@163.com', False)]>
+
+Author.objects.filter(id=1)
+SELECT `index_author`.`id`, `index_author`.`name`, `index_author`.`age`, `index_author`.`email`, `index_author`.`isActive` FROM `index_author` WHERE `index_author`.`id` = 1
+<QuerySet [<Author: Author object>]>
+
+
+<QuerySet [{'sum': 64, 'isActive': True}, {'sum': 32, 'isActive': False}]>
+
+

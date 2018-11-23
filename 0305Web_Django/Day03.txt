@@ -1,0 +1,222 @@
+1.模板
+	1.加载方式
+		1.loader
+		2.render
+	2.语法
+		1.变量
+			return render(request,'xx.html',{})
+			模板中：{{变量}}
+		2.标签
+			1.{% for %} ... {% endfor %}
+			2.{% if %} ... {% endif %}
+			3.{% comment %} ... {% comment %}
+			4.{% static '' %}
+			5.{% load static %}
+		3.过滤器
+			{{变量|过滤器}}
+
+			{{value|upper}}
+			{{value|lower}}
+			{{value|floatformat:n}}
+			{{value|truncatechars:n}}
+	3.静态文件
+		在 settings.py 中设置变量
+		1.设置静态文件的访问路径
+			STATIC_URL = '/static/'
+		2.设置静态文件的存储路径
+			STATICFILES_DIRS = (os.path.join(BASE_DIR,'static'),)
+				1.项目的根目录处创建一个 static 目录
+				2.每个应用下创建一个 static 目录
+=====================================
+1.模板 
+	1.模板的继承
+		1.语法
+			1.在父模板中
+				必须要标识处哪些内容在子模板中允许被修改
+				标签：
+					{% block 名称 %}
+					{% endblock %}
+
+				block 的作用：
+					1.在父模板中正常显示
+					2.在子模板中，如果不修改的话则按父模板的显示，要是修改的话则按照子模板的内容显示
+			2.在子模板中
+				1.指定继承自哪个父模板
+					{% extends '父模板名称' %}
+				2.增加 block 标签，改写属于自己的内容
+					{% block 名称 %}
+					{% endblock %}
+
+		练习：
+			1.创建项目 - fruitday
+			2.创建应用 - index ，配置好相应的路由
+			3.访问 http://localhost:8000/login
+				显示 之前已经做好的 登录页面(处理好静态资源文件)
+			4.访问 http://localhost:8000/register
+				创建一个新的模板继承自登录页面，并按照注册的样式进行模板的重写
+	2.url()的name参数
+		1.url的语法
+			url(regex,views,kwargs,name)
+				name:为了给当前的url地址起别名，反向解析时使用
+				反向解析：通过别名找到对应的地址
+
+				url(regex,views,kwargs=None,name='别名')
+		2.反向解析
+			1.在模板上做反向解析
+				1.基本解析
+					{% url '别名' %}
+				2.带参的解析
+					{% url '别名' '参数1' '参数2' %}
+			2.在视图上做反向解析
+				1.基本解析
+					url = reverse('别名')
+					url 就是通过别名解析出来的地址
+				2.带参的解析
+					url = reverse('别名',args=(参数1,参数2))
+					url 就是通过别名解析出来的地址
+2.模型 - Models
+	1.什么是模型
+		根据数据库表结构创建出来的class
+	2.ORM
+		三大特征：
+			1.表 到 类的映射
+			2.数据类型的映射
+			3.关系映射
+	3.创建 和 配置数据库
+		1.创建数据库
+			create database webdb default charset utf8 collate utf8_general_ci;
+		2.Django数据库配置
+			在 settings.py 中配置数据库的信息
+			DATABASES={
+				'default':{
+					... ...
+				}
+			}
+
+			1.ENGINE : django.db.backends.sqlite3
+				连接到mysql:django.db.backends.mysql
+			2.NAME : 连接到的数据库的名称
+			3.USER : 登录到数据库的用户名，通常为 root
+			4.PASSWORD : 登录到数据库的密码，通常为 123456
+			5.HOST : 要连接到的主机地址
+				本机：localhost 或 127.0.0.1
+			6.PORT : 指定端口号 ，mysql 为3306
+
+		3.数据库的同步操作
+			1. ./manage.py makemigrations
+				作用：将每个应用下的models.py文件生成一个数据库的中间文件，并将中间文件保存在 migrations 的目录中
+			2. ./manage.py migrate
+				作用：将每个应用下的migrations目录中的中间文件同步到数据库
+	4.编写Models
+		1.举个例子
+			在index应用中的 models.py 中
+			#创建一个实体类 - Publisher
+			#用于表示出版社信息，属性如下
+			#1.name：出版社名称(varchar)
+			#2.address：出版社所在地址(varchar)
+			#3.city：出版社所在城市(varchar)
+			#4.country：出版社所在国家(varchar)
+			#5.website：出版社的网址(varchar)
+		2.Models的语法规范
+			class ClassName(models.Model):
+				属性 = models.字段类型(字段选项)
+
+				字段类型：映射到数据库表中的数据类型
+					CharField() - varchar
+				字段选项：指定生成的字段的说明信息
+					max_length=30
+
+			字段类型(Field Types):
+				1.BooleanField()
+					编程语言中使用 True 和 False表示该列的值
+					数据库中使用 1 和 0 来表示具体的值
+					数据类型为 ：tinyint
+				2.CharField()
+					字符串
+					数据类型为 ：varchar
+				3.DateField()
+					编程语言中使用 字符串 或 date 类型的数据表示值
+					数据库中使用 时间字符串
+					数据类型为：date
+				4.DateTimeField()
+					数据类型为：datetime
+				5.DecimalField()
+					数据类型为:decimal
+					money=models.DecimalField(max_digits=7,decimal_places=2)
+				6.FloatField()
+					数据类型为: float
+				7.IntegerField()
+					数据类型为：int
+				8.EmailField()
+					数据类型为: varchar
+				9.URLField()
+					数据类型为：varchar
+				10.ImageField()
+					存储图片的路径
+					数据类型为：varchar
+					image = models.ImageField(upload_to='images/users/')
+			字段选项(Field Options):
+				1.default
+					作用：为当前字段指定默认值
+				2.null
+					作用：指定当前字段是否允许为空，默认为False，不能为空
+				3.primary_key
+					作用：指定是否为主键
+				4.db_column
+					作用：指定当前字段映射到表中类的名字，如果不指定则采用属性名作为列名
+		练习：
+			在 index 应用中的 models.py中追加两个class
+			1.Author - 作者
+				1.name - 姓名
+				2.age - 年龄
+				3.email - 邮箱(允许为空)
+			2.Book - 图书
+				1.title - 书名
+				2.publicate_date - 出版时间
+
+	5.相关指令
+		1.通过数据库自动导出models
+			./manage.py inspectdb > 文件名.py
+		2.数据的版本的切换
+			1. ./manage.py migrate 
+				执行所有应用中最新版本的数据库中间文件
+			2. ./manage.py migrate 应用名称 版本号
+				执行指定应用中指定版本的中间文件
+				ex: ./manage.py migrate index 0002
+
+
+
+
+
+
+		
+
+
+
+
+
+
+主路由配置：
+	# http://localhost:8000/music/xxx
+	url(r'^music/',include('music.urls'))
+
+music.urls
+	url(r'^show_all_music/$',show_all_views)
+
+如果想通过 a 标记 跳转到 show_all_mucis 上
+	<a href="/music/show_all_music"></a>
+	<a href="http://localhost:8000/music/show_all_music"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

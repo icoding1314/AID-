@@ -1,0 +1,155 @@
+作业：
+		1.访问路径 http://localhost:8000/login
+			交给 index 应用中的 login_views 去处理
+		2.访问路径 http://localhost:8000/register
+			交给 index 应用中的 register_views 去处理
+		3.访问路径 http://localhost:8000/
+			交给 index 应用中的 index_views 去处理
+
+		只要访问路径不是 admin/**,music/**,news/** 的话，剩下的请求一律交给 index 应用去处理
+
+
+1.Django中的模板(Templates)
+	1.什么是模板
+		模板就是要动态呈现给用户的网页
+		模板的本质就是网页- 前后端，动静结合的网页
+		Django的模板引擎是由Django自己提供的，并不是Jinja2，所以Django的模板语法与Flask(Jinja2)的语法会有一些不同
+	2.模板的设置
+		在 settings.py 中 有一个 TEMPLATES 变量
+		1.BACKEND：指定使用的模板的引擎
+		2.DIRS ：指定模板的存放目录们
+			1.如果写东西：则按照写好的路径去找模板
+			2.如果未写东西：那么Django会自动的到每个应用中所有一个叫templates的目录来作为模板的存放目录
+		3.APP_DIRS ： 是否自动搜索应用中的目录
+			True：表示搜索应用中的 templates 的目录
+	3.模板的加载方式
+		1.通过 loader 对象获取模板，再通过HttpResponse进行响应
+			from django.template import loader
+			def xxViews(request):
+				#1.通过 loader 加载模板
+				t = loader.get_template("模板名称")
+				#2.将模板渲染成字符串
+				html = t.render()
+				#3.将字符串通过HttpResponse响应给客户端
+				return HttpResponse(html)
+		2.使用 render 直接加载并响应模板
+			def xxViews(request):
+				return render(request,'模板的名称')
+	4.模板的语法
+		1.变量
+			1.作用：将后端的数据传递给模板进行显示
+			2.在Django中允许作为变量传递给模板的数据类型
+				字符串，整数，列表，元组，字典，函数，对象
+			3.变量的语法
+				变量们必须要封装到字典中才能传递给模板
+				1.使用 loader 加载模板
+					dic = {
+						'变量名1':'值1',
+						'变量名2':'值2',
+					}
+
+					t = loader.get_template('xxx.html')
+					html = t.render(locals() 或 dic)
+					return HttpResponse(html)
+				2.使用 render 加载并返回模板
+					dic = {
+						'变量名1':'值1',
+						'变量名2':'值2',
+					}
+					return render(request,'xx.html',dic)
+			4.在模板中使用变量
+				{{变量名}}
+		2.标签
+			1.作用
+				将服务器端的功能嵌入到模板中
+			2.语法
+				{% 标签内容 %}
+			3.常用标签
+				1. comment 标签
+				2. for 标签
+					作用：循环遍历 列表，字典，元组
+					语法：
+						{% for 变量 in 列表|元组|字典 %}
+						{% endfor %}
+
+						循环中允许使用 forloop 内置变量来获取循环的信息
+							forloop.counter : 当前循环遍历的次数
+							forloop.first : 判断是否为第一次循环
+							forloop.last : 判断是否为最后一次循环
+
+				3.if 标签
+				作用：在模板中完成变量的判断操作
+				语法：
+					1. if
+						{% if 条件 %}
+							满足条件时要执行的内容
+						{% endif %}
+					2. if ... else
+						{% if 条件 %}
+							满足条件时要执行的内容
+						{% else %}
+							不满足条件时要执行的内容
+						{% endif %}
+					3.if ... elif ... else
+						{% if 条件1 %}
+							满足条件1时要执行的内容
+						{% elif 条件2 %}
+							或满足条件2时要执行的内容
+						{% elif 条件3 %}
+							或满足条件3时要执行的内容
+						{% else %}
+							或以上条件都不满足时要执行的内容
+						{% endif %}
+		3.过滤器
+			1.什么是过滤器
+				在变量输出显示之前，对变量进行筛选和过滤
+			2.过滤器的语法
+				{{变量|过滤器:参数}}
+
+			3.常用过滤器
+				1.{{value|upper}}
+					将value变为大写
+				2.{{value|lower}}
+					将value变为小写
+				3.{{value|add:num}}
+					将num值累加到value之后
+				4.{{value|floatformat:n}}
+					将value四舍五入到n位小数
+				5.{{value|truncatechars:n}}
+					将value截取保留至n位字符(包含...)
+		4.静态文件
+			1.什么是静态文件
+				在Django中，不被解释器所动态解析的文件就是静态文件
+			2.Django中静态文件的处理
+				在settings.py中设置有关静态文件的信息：
+				1.设置静态文件的访问路径
+					在浏览器中通过哪个地址能够找到静态文件
+					STATIC_URL = '/static/'
+					如果访问路径是 http://localhost:8000/static/...,那么就到静态文件存储路径中找文件而不走路由(urls.py)
+				2.设置静态文件的存储路径
+					指定静态文件存储在服务器上的哪个位置处
+					STATICFILES_DIRS=(os.path.join(BASE_DIR,'static'),)
+					静态文件目录的存放位置：
+						1.在项目的根目录处创建一个 static 目录，用于保存静态文件们
+						2.每个应用中也可以创建一个 static 目录，用于保存静态文件们
+			3.访问静态文件
+				1.直接使用静态文件访问路径进行访问
+					http://localhost:8000/static/..
+					ex:
+					<img src="/static/images/a.jpg">
+					<img src="http://localhost:8000/static/images/a.jpg">
+				2.使用 {% static %} 访问静态资源
+					{% static %} 表示的就是静态资源的访问路径
+					1.在模板的最顶层增加
+						{% load static %}
+					2.在使用静态资源时
+						<img src="{% static 'images/a.jpg'%}">
+
+在Flask中：
+	return render_template('xxx.html',name='sf.zh',age=36)
+	return render_template('xxx.html',params={xxx:xxx})
+	return render_template('xxx.html',params=locals())
+
+	在 xxx.html 中，通过 ：
+		params.变量名 来调用变量
+

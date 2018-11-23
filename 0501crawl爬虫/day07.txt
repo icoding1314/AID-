@@ -1,0 +1,164 @@
+Day06回顾
+1、多线程爬虫
+  1、多进程线程应用场景
+    1、多进程 ：大量密集并行计算
+    2、多线程 ：I/O密集(网络I/O、本地磁盘I/O)
+  2、多线程爬虫
+    1、URL队列 ：put(url)
+    2、RES队列 ：从URL队列中get()发请求,put(html)
+    3、创建多个RES线程,发请求获取html
+    4、创建多个解析线程,解析html
+2、BeautifulSoup ：HTML/XML解析库
+  1、使用流程
+    1、导入模块 ：from bs4 import BeautifulSoup as bs
+    2、创建对象 ：soup = bs(html,'lxml')
+    3、查找节点 ：soup.find_all(id="test")
+  2、支持解析库
+    1、lxml        ：快,文档容错能力强
+    2、html.parser ：一般
+    3、xml         ：快,文档容错能力强
+  3、常用方法
+    1、find_all() ：列表
+      1、r_list = soup.find_all(class_="test")
+      2、r_list = soup.find_all("div",attrs={"class":"a"})
+    2、节点对象方法
+      1、get_text()
+      2、string
+3、scrapy框架
+  1、异步处理框架
+  2、组成
+    Engine、Scheduler、Downloader、Spider、Item Pipeline、Downloader Middlewares、Spider Middlewares
+  3、运行流程
+    1、Engine开始统揽全局,向Spider索要URL
+    2、Engine拿到url后,给Scheduler入队列
+    3、Schduler从队列中拿出url给Engine,通过Downloader Middlewares给Downloader去下载
+    4、Downloader下载完成,把response给Engine
+    5、Engine把response通过Spider Middlewares给Spider
+    6、Spider处理完成后,
+      把数据给Engine,交给Item Pipeline处理,
+      把新的URL给Engine,重复2-6步
+    7、Scheduler中没有任何Requests请求后,程序结束
+  4、创建项目流程
+    1、scrapy startproject Lianjia
+    2、cd Lianji/Lianjia
+    3、定义爬取数据结构 ：subl items.py
+      import scrapy
+      class LianjiaItem(scrapy.Item):
+          houseName = scrapy.Field()
+	  totlePrice = scrapy.Field()
+    4、cd spiders
+    5、scrapy genspider lianjiaspider lianjia.com
+      class LianjiaspiderSpider():
+          name = "lianjiaspider"
+	  allow_domains = ["lianjia.com"]
+	  start_urls = [""]
+	  def parse(self,response):
+	      ... 
+    6、项目管道 ：subl pipelines.py
+      class LianjiaPipeline(object):
+          def process_item(self,item,spider):
+	      return item
+    7、全局配置 ：subl settings.py
+      ROBOTSTXT_OBEY=False
+      ITME_PIPELINES=
+        {'Lianjia.pipelines.LianjiaPipeline':100}
+      DEFAULT_REQUEST_HEADERS={"User-Agent":"Mozilla/5.0"}
+    8、cd spiders -> scrapy crawl lianjiaspider
+*******************************************
+Day07笔记
+1、生成器
+  1、yield作用 ：把一个函数当做一个生成器使用
+  2、斐波那契数列 Fib.py
+  3、yield特点 ：让函数暂停,等待下1次调用
+2、项目 ：Csdn 
+  1、知识点 yield 、pipelines.py
+  2、目标
+    1、https://blog.csdn.net/qq_42231391/article/details/83506181
+    2、标题、发表时间、阅读数
+    3、步骤
+      1、创建项目
+      2、定义数据结构(items.py)
+      3、创建爬虫程序
+      4、第3步抓取的数据通过项目管道去处理
+      5、全局配置
+      6、运行爬虫程序
+3、项目 ：Daomu
+  1、URL ：http://www.daomubiji.com/dao-mu-bi-ji-1
+  2、目标
+    书名、书的标题、章节名称、章节数量、章节链接
+  3、步骤
+    1、创建项目 Daomu
+    2、改items.py(定义数据结构)
+    3、创建爬虫文件
+    4、改pipelines.py(项目管道文件)
+    5、配置settings.py
+    6、运行爬虫
+4、知识点
+  1、extract() : 获取选择器对象中的文本内容
+    # response.xpath('...') 得到选择器对象(节点所有内容) [<selector ...,data='<h1>...</h1>']
+    # response.xpath('.../text()') 得到选择器对象(节点文本) [<selector ...,data='文本内容'>]
+    # extract() : 把选择器对象中的文本取出来 ['文本内容']
+  2、爬虫程序中的 start_urls必须为列表
+    start_urls = [] 
+  3、pipelines.py中必须有1个函数叫
+    process_item(self,item,spider),当然还可以写任何其他函数
+5、存入MongoDB数据库
+  1、在settings.py中定义相关变量
+    MONGODB_HOST = 
+    MONGODB_PORT = 
+  2、可在pipelines.py中新建一个class
+    from Daomu import settings
+    class DaomumongoPipeline(object):
+        def __init__(self):
+	    host = settings.MONGODB_HOST
+  3、在settings.py文件中设置你的项目管道
+    ITEM_PIPELINES = {
+      "Daomu.pipelines.DaomumongoPipeline":100,
+      }
+6、存入MySQL数据库
+  1、self.db.commit()
+7、Csdn项目存到mongodb和mysql
+8、腾讯招聘网站案例
+  1、URL
+    第1页：https://hr.tencent.com/position.php?&start=0
+    第2页：https://hr.tencent.com/position.php?&start=10
+  2、Xpath匹配
+    基准xpath表达式(每个职位节点对象)
+      //tr[@class="even"] | //tr[@class="old"]
+    职位名称 ： ./td[1]/a/text()
+    详情链接 ： ./td[1]/a/@href
+    职位类别 ： ./td[2]/text()
+    招聘人数 ： ./td[3]/text()
+    工作地点 ： ./td[4]/text()
+    发布时间 ： ./td[5]/text()
+9、设置手机抓包
+  1、Fiddler(设置抓包)
+  2、在手机上安装证书
+    1、手机浏览器打开：http://IP地址:8888 (IP地址是你电脑的IP,8888是Fiddler设置的端口)
+    2、在页面上下载(FiddlerRoot certificate)
+      下载文件名：FiddlerRoot.cer
+    3、直接安装
+  3、设置代理
+    1、打开手机上已连接的无线, 代理设置 -> 改成 手动
+      IP地址：你电脑的IP (ipconfig / ifconfig)
+      端口号：8888
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,91 @@
+﻿前情回顾
+
+线程
+    线程通信 ---》 全局变量
+		线程的同步互斥 --》 Event  Lock
+		python  GIL问题  ---》 python线程效率低下
+
+线程和进程  区别和联系
+
+服务器模型 ： 循环模型
+									每次只能处理一个客户端的请求
+
+              并发模型
+							    IO并发 ： IO多路复用  协程
+									多进程、多线程并发
+									    每当有一个客户端就创建一个新的进程或者线程
+多进程并发
+
+fork + tcp
+
+文件服务器
+*************************************************************
+cookie
+
+os.listdir(path)
+功能 : 获取文件列表
+
+os.path.isfile() : 判断一个 文件是否为普通文件
+os.path.isdir() ： 判断一个文件是否为目录 
+
+多线程并发
+
+threading模块完成多线程并发
+
+对比多进程并发
+优势 ： 资源消耗少
+缺点 ： 需要注意对共享资源的操作
+
+实现步骤：
+1. 创建套接字，绑定，监听
+2. 接收客户端连接请求，创建新的线程
+3. 主线程继续等待其他客户端连接，分支线程执行客户端具体请求
+4. 处理完客户端请求后分支线程自然退出，关闭客户端套接字
+
+
+
+socket并发集成模块
+
+python2  SocketServer
+python3  socketserver
+
+功能 ： 通过模块提供的接口组合可以完成多进程/多线程  tcp/udp的         并发程序
+
+StreamRequestHandler    处理tcp请求
+DatagramRequestHandler  处理udp请求
+
+ForkingMixIn   创建多进程
+ThreadingMixIn  创建多线程
+ 
+TCPServer  创建tcp  server
+UDPServer  创建udp  server
+
+ForkingTCPServer     ForkingMixIn  +  TCPServer 
+ForkingUDPServer     ForkingMixIn  +  UDPServer 
+ThreadingTCPServer   ThreadingMixIn  +  TCPServer 
+ThreadingUDPServer   ThreadingMixIn  +  UDPServer 
+
+
+基于多线程并发的HTTPServer
+
+1. 接收浏览器http请求
+2. 对请求进行一定的解析
+3. 根据解析结果返回对应内容
+4. 如果没有请求内容则返回404
+5. 组织Response格式进行回发
+
+升级：
+* 使用多线程并发
+* 增加了具体的请求解析和404情况
+* 使用类进行代码封装
+* 增加一定的数据获取功能
+
+技术点 ： threading并发
+          tcp socket 传输
+					HTTP请求和响应格式
+
+
+
+
+
+

@@ -1,0 +1,109 @@
+day01、作业
+1、MySQL中数据类型有：____ ____枚举类型 日期时间类型
+2、关系型数据库中的核心内容是 关系 即 二维表
+3、简述客户端把数据存储到数据库服务器上的过程
+4、char和varchar的区别,各自的特点
+5、操作
+  1、创建一个学校的库 school
+  2、在库中创建表 students 用来存储学生信息：
+    id 大整型
+    姓名、年龄(不能为负)、性别、成绩(浮点)
+  3、查看students的表结构
+  4、在表中随意插入3条记录
+  5、在表中的 姓名、成绩两个字段插入3条记录
+  6、查看所有学生的姓名和成绩
+  8、查看成绩及格(>60分)的学生的姓名和成绩
+
+day03 作业：
+  1、把 /etc/passwd 导入到数据库表userinfo里面
+    tarena  :  x  :  1000  :  1000  :  tarena,,,
+    用户名   密码   UID号     GID号    用户描述
+    :  /home/tarena:  /bin/bash
+      家目录/主目录   登录权限
+  2、在userinfo第一列添加一个 id 字段,主键、自增长、显示宽度为3,位数不够用0填充
+  3、面试题
+有一张文章评论表comment如下
+comment_id	article_id	user_id	date
+1	10000	10000	2018-01-30 09:00:00
+2	10001	10001	... ...
+3	10002	10000	... ...
+4	10003	10015	... ...
+5	10004	10006	... ...
+6	10025	10006	... ...
+7	10009	10000	... ...
+以上是一个应用的comment表格的一部分，请使用SQL语句找出在本站发表的所有评论数量最多的10位用户及评论数，并按评论数从高到低排序
+备注：comment_id为评论id
+      article_id为被评论文章的id
+      user_id 指用户id
+
+day04 作业：
+综述：两张表，一张顾客信息表customers，一张订单表orders
+1、创建一张顾客信息表customers，字段要求如下：
+  c_id 类型为整型，设置为主键，并设置为自增长属性
+  c_name 字符类型，变长，宽度为20
+  c_age 微小整型，取值范围为0~255(无符号)
+  c_sex 枚举类型，要求只能在('M','F')中选择一个值
+  c_city 字符类型，变长，宽度为20
+  c_salary 浮点类型，要求整数部分最大为10位，小数部分为2位
+
+  在表中任意插入3条记录,c_name为"Zhangsan","Lisi","Wangwu", c_city尽量	写"Beijing","Shanghai" ......
+
+    insert into customers values
+    (1,"Zhangsan",25,"M","Beijing",8000),
+    (2,"Lisi",30,"F","Shanghai",10000),
+    (3,"Wangwu",27,"M","Shenzhen",3000);
+
+2、创建一张订单表orders，字段要求如下：
+  o_id 整型
+  o_name 字符类型，变长，宽度为30
+  o_price 浮点类型，整数最大为10位，小数部分为2位
+  设置此表中的o_id字段为customers表中c_id字段的外键,更新删除同步
+
+  在表中任意插入5条记录(注意外键限制)
+  o_name分别为"iphone","ipad","iwatch","mate9","r11",其他信息自己定
+    insert into orders values
+    (1,"iphone",5288),
+    (1,"ipad",3299),
+    (3,"mate9",3688),
+    (2,"iwatch",2222),
+    (2,"r11",4400);
+
+3、返回customers表中，工资大于4000元，或者年龄小于29岁，满足这样条件的前2条记录
+
+4、把customers表中，年龄大于等于25岁，并且地址是北京或者上海，这样的人的工资上调15%
+ 	
+5、把customers表中，城市为北京的顾客，按照工资降序排列，并且只返回结果中的第一条记录	
+
+6、选择工资c_salary最少的顾客的信息
+	
+7、找到工资大于5000的顾客都买过哪些产品的记录明细
+					
+8、删除外键限制
+			
+9、删除customers主键限制
+  1、删除自增长属性
+  2、删除主键限制
+
+
+day04作业：
+作业讲解
+  1、创建表
+    create table userinfo(
+    username varchar(25),
+    password char(1),
+    uid int,
+    gid int,
+    comment varchar(50),
+    homedir varchar(50),
+    shell varchar(50)
+    );
+  2、sudo cp /etc/passwd /var/lib/mysql-files/
+  3、load data infile "/var/lib/mysql-files/passwd"
+     into table userinfo
+     fields terminated by ":"
+     lines terminated by "\n";
+  4、alter table userinfo add id int(3) zerofill primary key auto_increment first;
+
+  5、
+   select user_id,count(user_id) from comment
+   group by user_id order by count(user_id) desc limit 10;      

@@ -1,0 +1,446 @@
+Scrapy学习笔记(7)-定制动态可配置爬虫
+http://jinbitou.net/2016/12/05/2244.html
+前言
+    最近一直想维护一个代理IP池，在网上找了三十多个免费提供代理IP的网站，想把这些代理都抓取下来存到本地数据库，再写一个守护进程定时去验证可用性和连接速度，剔除失效代理，以此来保证库里面始终都有特定数量的优质代理IP。那么问题来了，这么多网站每个网站的页面布局或者说网页源码都不一样，数据抓取规则也不一样，如果针对每个网站都硬编码一份spider代码，这工作量貌似有点大，而且一旦目标站点调整布局，我们之前写好的spider代码很可能就得再次修改。此时我迫切地希望能有一个框架可以通过只写一份spider代码和维护多个网站的爬取规则，就能自动抓取这些网站的信息，很庆幸的是强大的Scrapy 可以做到这点，本文记录实现过程。
+技术点
+    1.根据爬取规则自动生成spider
+    2.使用Scrapy核心API操作spider
+    3.Linux下Redis的安装和使用
+    4.基于Redis和SQLAlchemy对Scrapy Item去重并存储
+实现过程
+    笔者系统为centos，关于Redis的安装和配置可以参考这里：http://jinbitou.net/2016/10/28/2110.html，windows环境的读者请自行Google。本次项目的目录结构如下：
+Scrapy学习笔记(7)-定制动态可配置爬虫
+主要文件和目录解释：
+    model目录存放的是数据库表的映射文件
+    spiders目录存放的是spider代码
+    initDB.py是用来初始化数据库的，自动根据model目录下的映射文件在数据库中建好相应的表
+    pipelines.py实现将抓取到的数据持久化到数据库
+    proxy_middlewares.py自定义中间件，用来设定代理IP
+    useragent_middlewares.py自定义中间件，用来随机切换UA
+    run.py总控脚本，从规则表中读取规则，动态生成spider并启动
+废话不多说，上代码！
+__init__.py（文件1）
+    # -*- coding: utf-8 -*-
+    from sqlalchemy.ext.declarative import declarative_base
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
+    # 创建对象的基类:
+    Base = declarative_base()
+
+    # 初始化数据库连接:
+    engine = create_engine('mysql+mysqldb://root:123456@localhost:3306/scrapy?charset=utf8')
+
+    #返回数据库会话
+    def loadSession():
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        return session
+proxy.py（文件2）
+    from sqlalchemy import Column,String,Integer,DateTime
+    from . import Base
+    import datetime
+    class Proxy(Base):#继承Base类
+        __tablename__ = 'proxies'
+
+        ip_port= Column(String(30),primary_key=True,nullable=False)#主键
+        type= Column(String(20),nullable=True,default="")#协议类型
+        level= Column(String(20),nullable=True,default="")#匿名级别
+        location= Column(String(100),nullable=True,default="")#ip所在地区
+        speed= Column(String(20),nullable=True,default="")#连接速度
+        lifetime = Column(String(20),nullable=True,default="")#生存时间
+        lastcheck = Column(String(20),nullable=True,default="")#最后校验时间
+        source = Column(String(500), nullable=False)#页面地址
+        rule_id = Column(Integer,nullable=False)#规则(网站/spider)id
+        indate = Column(DateTime,nullable=False)#入库时间
+
+        def __init__(self,ip_port,source,type,level,location,speed,lifetime,lastcheck,rule_id):
+            self.ip_port=ip_port
+            self.type=type
+            self.level=level
+            self.location=location
+            self.speed=speed
+            self.source=source
+            self.lifetime=lifetime
+            self.lastcheck=lastcheck
+            self.rule_id=rule_id
+            self.indate=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    rules.py（文件3）
+    # -*- coding: utf-8 -*-
+    from sqlalchemy import Column,String,Integer
+    from sqlalchemy import Sequence
+    from . import Base
+
+    class Rule(Base):
+        __tablename__ = 'rules'
+        # 表结构:
+        id = Column(Integer, Sequence('id',start=1,increment=1),primary_key=True)#设定自增长主键
+        name = Column(String(100),nullable=False)#spider的名字
+        allowed_domains = Column(String(500),nullable=False)#允许爬取的域
+        start_urls = Column(String(500),nullable=False)#开始爬取的入口
+        next_page = Column(String(500),nullable=False,default="")#xpath表达式，爬取下一页
+        allow_url = Column(String(500),nullable=False)#正则表达式，匹配符合要求的链接
+        extract_from = Column(String(500),nullable=False,default="")#xpath表达式，限制解析区域
+        loop_xpath = Column(String(500),nullable=False)#xpath表达式，控制单页面循环次数
+        ip_xpath = Column(String(500),nullable=False)#xpath表达式，解析IP
+        port_xpath = Column(String(500),nullable=False,default="")#xpath表达式，解析端口
+        location1_xpath = Column(String(500),nullable=False)#xpath表达式，解析区域
+        location2_xpath = Column(String(500),nullable=False,default="")#xpath表达式，解析区域
+        speed_xpath = Column(String(500),nullable=False,default="")#xpath表达式，解析连接速度
+        lifetime_xpath = Column(String(500),nullable=False,default="")#xpath表达式，解析生存时间
+        type_xpath = Column(String(500),nullable=False,default="")#xpath表达式，解析协议类别
+        level_xpath = Column(String(500),nullable=False,default="")#xpath表达式，解析匿名级别
+        lastcheck_xpath = Column(String(500),nullable=False,default="")#xpath表达式，解析最后校验时间
+        enable = Column(Integer,nullable=False)#激活rule的开关，1为开0为关
+    proxy_spider.py（文件4）
+    # -*- coding: utf-8 -*-
+    import scrapy
+    from scrapy.linkextractors import LinkExtractor
+    from scrapy.spiders import CrawlSpider, Rule
+
+    #抓取信息的数据结构，类似于javabean
+    class IpProxyPoolItem(scrapy.Item):
+        ip_port = scrapy.Field()
+        type = scrapy.Field()
+        level = scrapy.Field()
+        location = scrapy.Field()
+        speed = scrapy.Field()
+        lifetime = scrapy.Field()
+        lastcheck = scrapy.Field()
+        rule_id = scrapy.Field()
+        source = scrapy.Field()
+
+    #搭建spider的主体框架，继承CrawlSpider类
+    class ProxySpiderSpider(CrawlSpider):
+        name = 'MagicSpider'
+        def __init__(self,rule):
+            self.rule = rule
+            self.name = rule.name
+            #spilt函数通过分隔符分割字符串，得到列表类型
+            self.allowed_domains = rule.allowed_domains.split(',')
+            self.start_urls = rule.start_urls.split(',')
+            rule_list = []
+
+            # 添加"下一页"链接的规则
+            if len(rule.next_page):
+                rule_list.append(Rule(LinkExtractor(restrict_xpaths=rule.next_page), follow=True))
+            #链接提取规则
+            rule_list.append(Rule(LinkExtractor(
+                allow=rule.allow_url.split(','),
+                unique=True),#链接去重
+                follow=True,#跟随爬取
+                callback='parse_item'))#调用parse_item提取数据
+            #使用tuple()将列表转换为元组
+            self.rules = tuple(rule_list)
+            #当有子类继承ProxySpiderSpider的时候，调用初始化方法启动爬取过程
+            super(ProxySpiderSpider, self).__init__()
+
+        def parse_item(self, response):
+            item=IpProxyPoolItem()
+            if len(self.rule.loop_xpath):
+                for proxy in response.xpath(self.rule.loop_xpath):
+                    if len(self.rule.ip_xpath):
+                        tmp_ip = proxy.xpath(self.rule.ip_xpath).extract_first()
+                        #strip函数用来删除空白字符(包括'\n', '\r',  '\t',  ' ')
+                        ip = tmp_ip.strip() if tmp_ip is not None else ""
+                    else:
+                        ip = ""
+                    if len(self.rule.port_xpath):
+                        tmp_port = proxy.xpath(self.rule.port_xpath).extract_first()
+                        port = tmp_port.strip() if tmp_port is not None else ""
+                    else:
+                        port = ""
+                    if len(self.rule.location1_xpath):
+                        tmp_location1 = proxy.xpath(self.rule.location1_xpath).extract_first()
+                        location1 = tmp_location1.strip() if tmp_location1 is not None else ""
+                    else:
+                        location1 = ""
+                    if len(self.rule.location2_xpath):
+                        tmp_location2 = proxy.xpath(self.rule.location2_xpath).extract_first()
+                        location2 = tmp_location2.strip() if tmp_location2 is not None else ""
+                    else:
+                        location2 = ""
+                    if len(self.rule.lifetime_xpath):
+                        tmp_lifetime = proxy.xpath(self.rule.lifetime_xpath).extract_first()
+                        lifetime = tmp_lifetime.strip() if tmp_lifetime is not None else ""
+                    else:
+                        lifetime = ""
+                    if len(self.rule.lastcheck_xpath):
+                        tmp_lastcheck = proxy.xpath(self.rule.lastcheck_xpath).extract_first()
+                        lastcheck = tmp_lastcheck.strip() if tmp_lastcheck is not None else ""
+                    else:
+                        lastcheck = ""
+                    if len(self.rule.level_xpath):
+                        tmp_level = proxy.xpath(self.rule.level_xpath).extract_first()
+                        level = tmp_level.strip() if tmp_level is not None else ""
+                    else:
+                        level = ""
+                    if len(self.rule.type_xpath):
+                        tmp_type = proxy.xpath(self.rule.type_xpath).extract_first()
+                        type = tmp_type.strip() if tmp_type is not None else ""
+                    else:
+                        type = ""
+                    if len(self.rule.speed_xpath):
+                        tmp_speed = proxy.xpath(self.rule.speed_xpath).extract_first()
+                        speed = tmp_speed.strip() if tmp_speed is not None else ""
+                    else:
+                        speed = ""
+                    #join函数用来拼接字符串，接收的参数为列表类型
+                    item['ip_port']=(":".join([ip,port])) if len(port) else ip
+                    item['type']=type
+                    item['level']=level
+                    item['location']=(" ".join([location1,location2])) if location2 is not None and len(location2) else location1
+                    item['speed']=speed
+                    item['lifetime']=lifetime
+                    item['lastcheck']=lastcheck
+                    item['rule_id']=self.rule.id
+                    item['source']=response.url
+                    yield item
+pipelines.py（文件6）
+    # -*- coding: utf-8 -*-
+    import MySQLdb
+    from scrapy.exceptions import DropItem
+    import redis
+    from model import loadSession
+    from model import proxy
+    from scrapy import log
+
+    import logging
+    Redis = redis.StrictRedis(host='localhost',port=6379,db=0)
+
+    # item去重
+    class DuplicatesPipeline(object):
+        def process_item(self, item, spider):
+            if Redis.exists('ip_port:%s' % item['ip_port']) :
+                raise DropItem("Duplicate item found: %s" % item)
+            else:
+                Redis.set('ip_port:%s' % item['ip_port'],1)
+                return item
+
+    #数据入库
+    class IpProxyPoolPipeline(object):
+
+        def process_item(self, item, spider):
+            if len(item['ip_port']):
+                a = proxy.Proxy(
+                    ip_port=item['ip_port'],
+                    type=item['type'],
+                    level=item['level'],
+                    location=item['location'],
+                    speed=item['speed'],
+                    lifetime=item['lifetime'],
+                    lastcheck=item['lastcheck'],
+                    rule_id=item['rule_id'],
+                    source=item['source']
+                )
+                session = loadSession()
+                try:
+                    session.merge(a)
+                    session.commit()
+                except MySQLdb.IntegrityError, e:
+                    log.msg("MySQL Error: %s" % str(e), _level=logging.WARNING)
+                return item
+            else:
+                log.msg("ip_port is invalid!",_level=logging.WARNING)
+proxy_middlewares.py（文件7）
+    # -*- coding: utf-8 -*-
+    import random
+    from scrapy import log
+    import logging
+
+    class ProxyMiddleware(object):
+        proxyList = [ \
+            '124.88.67.18:80',
+            '124.88.67.52:843',
+            '110.77.169.30:8080',
+            '58.246.194.70:8080',
+            '159.232.214.68:8080'
+            ]
+
+        def process_request(self, request, spider):
+            # 从代理IP列表中随机选择一个
+            pro_adr = random.choice(self.proxyList)
+            log.msg("Current Proxy <%s>" % pro_adr,_level=logging.INFO)
+            request.meta['proxy'] = "http://" + pro_adr
+useragent_middlewares.py（文件9）
+    # -*-coding:utf-8-*-
+    from scrapy import log
+    import logging
+    '''
+    #避免被ban策略之一：使用useragent池。
+    '''
+    import random
+    from scrapy.downloadermiddlewares.useragent import UserAgentMiddleware
+    class UserAgent(UserAgentMiddleware):
+
+        def __init__(self, user_agent=''):
+            self.user_agent = user_agent
+
+        def process_request(self, request, spider):
+            ua = random.choice(self.user_agent_list)
+            if ua:
+                #显示当前使用的useragent
+                #print "********Current UserAgent:%s************" %ua
+                #记录
+                log.msg('Current UserAgent: '+ua, _level=logging.INFO)
+                request.headers.setdefault('User-Agent', ua)
+        user_agent_list = [\
+            "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 "
+            "(KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1",
+            "Mozilla/5.0 (X11; CrOS i686 2268.111.0) AppleWebKit/536.11 "
+            "(KHTML, like Gecko) Chrome/20.0.1132.57 Safari/536.11",
+            "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.6 "
+            "(KHTML, like Gecko) Chrome/20.0.1092.0 Safari/536.6",
+            "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/536.6 "
+            "(KHTML, like Gecko) Chrome/20.0.1090.0 Safari/536.6",
+            "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.1 "
+            "(KHTML, like Gecko) Chrome/19.77.34.5 Safari/537.1",
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/536.5 "
+            "(KHTML, like Gecko) Chrome/19.0.1084.9 Safari/536.5",
+            "Mozilla/5.0 (Windows NT 6.0) AppleWebKit/536.5 "
+            "(KHTML, like Gecko) Chrome/19.0.1084.36 Safari/536.5",
+            "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.3 "
+            "(KHTML, like Gecko) Chrome/19.0.1063.0 Safari/536.3",
+            "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/536.3 "
+            "(KHTML, like Gecko) Chrome/19.0.1063.0 Safari/536.3",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_0) AppleWebKit/536.3 "
+            "(KHTML, like Gecko) Chrome/19.0.1063.0 Safari/536.3",
+            "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/536.3 "
+            "(KHTML, like Gecko) Chrome/19.0.1062.0 Safari/536.3",
+            "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.3 "
+            "(KHTML, like Gecko) Chrome/19.0.1062.0 Safari/536.3",
+            "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/536.3 "
+            "(KHTML, like Gecko) Chrome/19.0.1061.1 Safari/536.3",
+            "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.3 "
+            "(KHTML, like Gecko) Chrome/19.0.1061.1 Safari/536.3",
+            "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/536.3 "
+            "(KHTML, like Gecko) Chrome/19.0.1061.1 Safari/536.3",
+            "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/536.3 "
+            "(KHTML, like Gecko) Chrome/19.0.1061.0 Safari/536.3",
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.24 "
+            "(KHTML, like Gecko) Chrome/19.0.1055.1 Safari/535.24",
+            "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/535.24 "
+            "(KHTML, like Gecko) Chrome/19.0.1055.1 Safari/535.24",
+            "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; en-us) AppleWebKit/534.50"
+            "(KHTML, like Gecko) Version/5.1 Safari/534.50",
+            "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-us) AppleWebKit/534.50" 
+            "(KHTML, like Gecko) Version/5.1 Safari/534.50",
+            "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0",
+            "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0;"
+            ".NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; InfoPath.3; rv:11.0) like Gecko",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.11 "
+            "(KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11",
+            "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; 360SE)",
+            "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; "
+            "AcooBrowser; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
+            "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; "
+            "Acoo Browser; SLCC1; .NET CLR 2.0.50727; Media Center PC 5.0; .NET CLR 3.0.04506)",
+            "Mozilla/4.0 (compatible; MSIE 7.0; AOL 9.5; "
+            "AOLBuild 4337.35; Windows NT 5.1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
+            "Mozilla/5.0 (Windows; U; MSIE 9.0; Windows NT 9.0; en-US)",
+            "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; "
+            "Win64; x64; Trident/5.0; .NET CLR 3.5.30729; .NET CLR 3.0.30729; .NET CLR 2.0.50727; Media Center PC 6.0)",
+            "Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0; WOW64; "
+            "Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; .NET CLR 1.0.3705; .NET CLR 1.1.4322)",
+            "Mozilla/4.0 (compatible; MSIE 7.0b; Windows NT 5.2; .NET CLR 1.1.4322; .NET CLR 2.0.50727; "
+            "InfoPath.2; .NET CLR 3.0.04506.30)",
+            "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN) AppleWebKit/523.15 "
+            "(KHTML, like Gecko, Safari/419.3) Arora/0.3 (Change: 287 c9dfb30)",
+            "Mozilla/5.0 (X11; U; Linux; en-US) AppleWebKit/527+ (KHTML, like Gecko, Safari/419.3) Arora/0.6",
+            "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.2pre) Gecko/20070215 K-Ninja/2.1.1",
+            "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9) Gecko/20080705 Firefox/3.0 Kapiko/3.0",
+            "Mozilla/5.0 (X11; Linux i686; U;) Gecko/20070322 Kazehakase/0.4.5",
+            "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.8) Gecko Fedora/1.9.0.8-1.fc10 Kazehakase/0.5.6",
+            "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/535.20 "
+            "(KHTML, like Gecko) Chrome/19.0.1036.7 Safari/535.20",
+            "Opera/9.80 (Macintosh; Intel Mac OS X 10.6.8; U; fr) Presto/2.9.168 Version/11.52"
+           ]
+initDB.py（文件5）
+    初始化数据库，自动建好所需的数据库表，并添加了一条规则
+    # -*- coding: utf-8 -*-
+    from model import loadSession
+    from model import proxy
+    from model.rules import Rule
+    from model import Base,engine
+    #寻找Base的所有子类，并在数据库中生成表
+    Base.metadata.create_all(engine)
+    #返回数据库会话
+    session = loadSession()
+
+    #实例化一个Rule对象
+    item=Rule()
+    item.name="ip84"
+    item.allowed_domains="ip84.com"
+    item.start_urls="http://ip84.com/gn/1"
+    item.next_page="//a[@class='next_page']"
+    item.allow_url="/gn/\d+"
+    item.loop_xpath="//table[@class='list']/tr[position()>1]"
+    item.ip_xpath="td[1]/text()"
+    item.port_xpath="td[2]/text()"
+    item.location1_xpath="td[3]/a[1]/text()"
+    item.location2_xpath="td[3]/a[2]/text()"
+    item.speed_xpath="td[6]/text()"
+    item.type_xpath="td[5]/text()"
+    item.level_xpath="td[4]/text()"
+    item.enable="1"
+    #添加到数据库
+    session.add(item)
+    session.commit()
+    run.py（文件8）
+    # -*- coding: utf-8 -*-
+    from spiders.proxy_spider import ProxySpiderSpider
+    from model import loadSession
+    from model.rules import Rule
+    from scrapy.crawler import CrawlerProcess
+    from scrapy.settings import Settings
+
+    #spider相关设置
+    settings = Settings()
+    '''
+    Scrapy框架的高度灵活性得益于其数据管道的架构设计，开发者可以通过简单的配置就能轻松地添加新特性。
+    我们可以通过如下的方式添加pipline。
+    '''
+    settings.set("ITEM_PIPELINES" , {
+        'pipelines.DuplicatesPipeline': 200,
+        'pipelines.IpProxyPoolPipeline': 300,
+    })
+
+    #设置默认请求头
+    settings.set("DEFAULT_REQUEST_HEADERS",{
+      'Accept': 'text/html, application/xhtml+xml, application/xml',
+      'Accept-Language': 'zh-CN,zh;q=0.8'}
+    )
+
+    #注册自定义中间件，激活切换UA的组件和切换代理IP的组件
+    settings.set("DOWNLOADER_MIDDLEWARES",{
+       'useragent_middlewares.UserAgent': 1,
+       'proxy_middlewares.ProxyMiddleware':100,
+       'scrapy.downloadermiddleware.useragent.UserAgentMiddleware' : None,
+    }
+    )
+    #设置爬取间隔
+    settings.set("DOWNLOAD_DELAY",1)
+
+    #禁用cookies
+    settings.get("COOKIES_ENABLED",False)
+
+    #设定是否遵循目标站点robot.txt中的规则
+    settings.get("ROBOTSTXT_OBEY",True)
+
+    #加载设置
+    process = CrawlerProcess(settings)
+
+    session=loadSession()
+    #取出规则表中已激活的rule
+    rules = session.query(Rule).filter(Rule.enable == 1)
+    for rule in rules:
+        process.crawl(ProxySpiderSpider,rule)
+    process.start()
+    开始爬取
+    shell中执行python run.py即可开始采集数据…
+    新增两个网站的爬取规则：
+    http://www.xicidaili.com/
+    http://www.kuaidaili.com/free/
+    检验结果：
+    三条规则生成的spider在两个小时不到已经采集了6万多IP。

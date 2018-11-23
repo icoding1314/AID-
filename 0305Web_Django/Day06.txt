@@ -1,0 +1,186 @@
+1.F 和 Q
+	1.F()
+		Author.objects.all().update(age=F('age')+10)
+	2.Q()
+		Q() | Q()
+		Author.objects.filter(Q(id=1)|Q(age__gte=35))
+2.原生方法
+	1.查询 - raw()
+		Entry.objects.raw(sql)
+	2.增删改
+		with connection.cursor() as cursor:
+			cursor.execute(sql)
+3.使用后台管理Models
+	1.基本管理
+		1. def __str__(self):
+		2. 内部类 - Meta
+			1.db_table
+			2.verbose_name
+			3.verbose_name_plural
+			4.ordering = []
+		3.verbose_name
+			name=model.CharField(max_length="",verbose_name)
+
+	2.高级管理
+		1.高级管理类
+			继承自 admin.ModelAdmin
+			注册高级管理类 : admin.site.register(Entry,EntryAdmin)
+		2.高级管理属性
+			1.list_display
+			2.list_display_links
+			3.list_editable
+			4.search_fields
+			5.list_filter
+			6.date_hierarchy
+			7.fields
+			8.fieldsets
+				fieldsets = (
+					("组名",{
+						"fields":("属性1","属性2"),
+						"classes":('collapse',)
+					}),
+				)
+4.关系映射
+	1.一对一
+		1.设置一对一
+			任何一个实体中：
+			 属性 = models.OneToOneField(Entry)
+		2.反向引用
+			属性 ：对应的实体类名全小写
+	2.一对多
+		1.设置一对多
+			多的实体中增加对一的引用
+			属性 = models.ForeignKey(Entry)
+		2.反向引用
+			属性 ：类名全小写_set
+	3.多对多
+		1.设置多对多
+			任何一个类中
+			属性 = models.ManyToManyField(Entry)
+		2.反向引用
+			属性 ：类名全小写_set
+=======================================================
+1.Django ORM
+	1.自定义查询对象 - objects
+		Entry.objects.filter()
+		1.声明类 EntryManager 继承自 models.Manager
+			允许在 EntryManager 中添加自定义函数
+
+			class EntryManager(models.Manager):
+				def 函数名(self,自定义参数列表):
+					... ...
+					return ... ...
+		2.使用 EntryManager 覆盖 Models类中原有的objects
+			class Entry(models.Model):
+				objects = EntryManager()
+				name = models.CharField(xxxx)
+
+			练习：
+				为 Author 实体自定义objects对象，增加一个函数，用于查询年龄小于指定年龄值的作者的QuerySet
+2.HttpRequest - 请求
+	1.什么是HttpRequest
+		HttpRequest,在Django中就是请求对象的封装体现，里面封装了请求过程中的所有信息。在Django中HttpRequest被封装成了 request 对象，被封装到请求处理视图函数中做为参数，在调用视图时自动传入
+	2.HttpRequest中的主要内容
+		1.request.scheme : 请求协议
+		2.request.body : 请求主体
+		3.request.path : 请求路径(具体资源路径)
+		4.request.get_host() : 请求的主机地址 / 域名
+		5.request.method : 获取请求方法
+		6.request.GET : 封装了get请求方式所提交的数据
+		7.request.POST : 封装了post请求方式所提交的数据
+		8.request.COOKIES : 封装了 cookies 中的所有数据
+		9.request.META : 封装了请求的元数据
+			request.META.HTTP_REFERER : 封装了请求的源地址
+
+	3.获取请求提交的数据
+		1.get请求方式
+			request.GET['名称']
+			request.GET.get('名称')
+
+			1.使用表单提交数据
+				<form method='get'></form>
+			2.通过地址拼查询字符串
+				<a href="地址?参数1=值1&参数2=值2"></a>
+
+			Django 中通过 url 传参
+				url(r'^xxx/(\d+)')
+				该写法属于Django表准并非Http标准，不能用 request.GET[]
+		2.post请求方式
+			request.POST['名称']
+
+			CSRF:Cross-Site Request Forgery
+					 跨站点     请求    伪装
+			
+			解决方案：
+				1.如果想通过 CSRF验证，则需要在表单中的第一行增加：{%csrf_token%}
+				2.取消 csrf 的验证
+					删除 settings.py 中 MIDDLEWARE 中 CsrfViewMiddleware 中间件
+				3.在处理函数上增加装饰器
+					@csrf_protect
+
+					@csrf_protect
+					def post_views(request):
+						xxx  
+			
+			练习：完成果园注册操作
+				1.创建数据库 - fruit
+				2.创建实体类 - User
+					uphone - 手机号
+					upwd - 密码
+					uname - 用户名
+					uemail - 电子邮件
+					isActive - 是否激活
+				3.完善注册模板，提交数据时，将数据保存进数据库
+3.使用forms模块处理表单
+	1.forms模块的作用
+		通过forms模块，允许将表单与class相结合，允许通过class生成表单
+	2.使用 forms 模块
+		1.创建 forms.py 文件
+		2.导入 django 的 forms
+			from django import forms
+		3.创建 class ，一个 class 对应生成 一个表单
+			class ClassName(forms.Form)
+				pass
+		4.在 class 中 创建属性
+			一个属性对应到表单中会生成一个控件
+	3.在模板中解析 form 对象
+		1.注意
+			1.需要自定义 <form>
+			2.需要自定义按钮
+		2.处理方法
+			在视图中创建 form 的对象，并发送到模板中
+			ex:
+				form = RemarkForm()
+				return render(request,'xxx.html',locals())
+
+			在模板中解析 form 对象
+			1.手动解析
+				在模板中
+					{% for field in form %}
+						{{field}} 表示的就是控件
+						{{field.label}} : 表示的是控件中lable的值
+					{% endfor %}
+			2.自动解析
+				1. {{form.as_p}}
+					将form对象中的每个属性使用p标记包裹起来，再显示
+				2. {{form.as_ul}}
+					将form对象中的每个属性使用li标记包裹起来，再显示在网页上
+					注意：必须手动提供<ol></ol> 或 <ul></ul>
+
+				3. {{form.as_table}}
+					将form对象中的每个属性使用tr标记包裹起来，再显示在网页上
+					注意：必须手动提供 <table>
+	4.在视图中，通过 forms.Form自动获取表单数据
+		1.通过 forms.Form 的构造器来接收post数据
+			form = XXXForm(request.POST)
+		2.必须使form通过验证之后，再取值
+			form.is_valid()
+				返回True:提交的数据已通过所有验证，允许取值
+				返回False:提交的数据未通过验证，无法取值
+		3.获取表单中的数据
+			通过 form.cleaned_data 来接收提交的数据
+		
+	dir(request):
+
+		['COOKIES', 'FILES', 'GET', 'META', 'POST', '__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__iter__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_encoding', '_get_post', '_get_raw_host', '_get_scheme', '_initialize_handlers', '_load_post_and_files', '_mark_post_parse_error', '_messages', '_post_parse_error', '_read_started', '_set_post', '_stream', '_upload_handlers', 'body', 'build_absolute_uri', 'close', 'content_params', 'content_type', 'csrf_processing_done', 'encoding', 'environ', 'get_full_path', 'get_host', 'get_port', 'get_raw_uri', 'get_signed_cookie', 'is_ajax', 'is_secure', 'method', 'parse_file_upload', 'path', 'path_info', 'read', 'readline', 'readlines', 'resolver_match', 'scheme', 'session', 'upload_handlers', 'user', 'xreadlines']
+

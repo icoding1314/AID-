@@ -1,0 +1,127 @@
+3.AJAX
+	1.什么是AJAX
+		Asynchronous Javascript And Xml
+    异步的       JS        和   xml
+
+		通过 JS 异步的向服务器发送请求并接收响应数据
+
+		同步访问：
+			当客户端向服务器发送请求时，服务器在处理的过程中，浏览器只能等待，效率较低
+		异步访问：
+			当客户端向服务器发送请求时，服务器在处理的过程中，客户端可以做其他的操作，不需要一直等待
+		
+		AJAX优点：
+			1.异步 访问
+			2.局部 刷新
+
+		使用场合：
+			1.搜索建议
+			2.表单验证
+			3.前后端完全分离
+	2.AJAX核心对象 - 异步对象(XMLHttpRequest)
+		1.什么是XMLHttpRequest
+			简称为 xhr
+			称为 "异步对象"，代替浏览器向服务器发送异步的请求并接收响应
+
+			xhr 是由JS来提供的
+		2.创建 异步对象 (xhr)
+			主流的异步对象是 XMLHttpRequest 类型的，并且主流浏览器(IE7+,Chrome,Firefox,Safari,Opera)全部都支持 XMLHttpRequest。但在IE低版本浏览器中(IE6以及以下)，就不支持XMLHttpRequest，需要使用 ActiveXObject() 来创建异步对象
+
+			<script>
+				if(window.XMLHttpRequest){
+					支持 XMLHttpRequest
+					var xhr = new XMLHttpRequest();
+				}else{
+					不支持XMLHttpRequest,使用 ActiveXObject 创建异步对象
+					var xhr = new ActiveXObject("Microsoft.XMLHTTP");
+				}
+			</script>
+1.AJAX
+	1.创建 xhr
+	2.xhr 的成员
+		1.方法 - open()
+			作用：创建请求
+			语法：open(method,url,asyn)
+				method:请求方式，取值'get' 或 'post'
+				url:请求地址，字符串
+				asyn:是否采用异步的方式
+					true:异步
+					false:同步
+			ex:
+				xhr.open('get','/server',true);
+		2.属性 - readyState
+			作用：请求状态，通过不同的请求状态来表示xhr与服务器的交互情况
+			由0-4共5个值来表示5个不同的状态
+			0 ：请求尚未初始化
+			1 ：已经与服务器建立连接
+			2 ：服务器端已接收请求
+			3 ：请求正在处理中
+			4 ：响应已经完成
+		3.属性 - status
+			作用：服务器端的响应状态码
+				200 ：表示服务器正确处理所有的请求以及给出响应
+				404 ：请求资源不存在
+				500 ：服务器内部错误
+				... ...
+		4.事件 - onreadystatechange
+			作用：每当xhr的readyState发生改变的时候都要触发的操作 - 回调函数
+				只有当readyState的值为4并且status的值为200的时候，才可以正常的去接收响应数据
+		5.属性 - responseText
+			作用：响应数据
+		6.方法 - send()
+			作用：通知xhr向服务器端发送请求
+			语法：send(body)
+				get请求：body的值为null
+					send(null)
+				post请求：此处为要提交的数据
+					send("请求数据")
+	3.AJAX的操作步骤
+		1.GET请求
+			1.创建 xhr 对象
+			2.创建请求 - open()
+			3.设置回调函数 - onreadystatechange
+				判断状态并接收响应数据
+			4.发送请求 - send()
+
+			请求参数：
+				推荐：请求地址后拼QueryString
+					xhr.open('get','/02-server?key=value&key=value',true)
+		2.POST请求
+			ajax的post请求，会把 Content-Type 请求消息头的值修改为 "text/plain;charset=utf-8"，导致了服务器端没有办法正常接收数据
+			解决方案：将Content-Type请求消息头的值再更改回application/x-www-form-urlencoded 即可
+			xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+			
+2.JQUERY AJAX
+	在 jquery 中提供了对原生的AJAX的封装
+
+	1.$obj.load(url,data,callback)
+		作用：异步加载数据到 $obj 元素中
+		参数：
+			1.url ：异步请求的地址
+			2.data ：传递给服务器端的参数(可选)
+				1.可以传递普通字符串
+					"name=zhangsf&age=85"
+				2.可以传递JSON
+					{
+						"name":"zhangsf",
+						"age":85
+					}
+			3.callback ：异步请求完成后要执行的操作(可选)
+				回调函数
+				function(resText,statusText){
+					resText : 响应数据
+					statusText : 响应的状态文本
+				}
+	2.$.get(url,data,callback,type)
+		1.url : 异步请求地址
+		2.data : 请求提交的数据
+			可以是字符串，可以是JSON
+		3.callback : 请求成功时的回调函数
+			function(resText){
+				resText : 表示响应回来的文本
+			}
+		4.type : 响应回来的数据的类型
+			1.html : 响应回来的文本是html文本
+			2.text : 响应回来的文本是普通文本
+			3.json : 响应回来的数据是JSON对象
+

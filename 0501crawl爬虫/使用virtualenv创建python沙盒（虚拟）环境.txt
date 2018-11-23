@@ -1,0 +1,41 @@
+使用virtualenv创建python沙盒（虚拟）环境
+http://jinbitou.net/2016/11/13/2148.html
+前言：
+	Virtualenv是一个非常好的virtual python environment builder，他最大的好处是，可以让每一个python项目单独使用一个环境，在这些环境里面可以选择不同的Python版本或者不同的Packages，并且可以在没有root权限的情况下在各自环境里安装新套件，互相不会产生任何的影响，也就是所谓的沙盒。
+为什么要创建Python沙盒，简单总结原因如下：
+	解决库之间的版本依赖，比如同一系统上不同应用依赖同一个库的不同版本。
+	解决权限限制，比如你没有root权限。
+	尝试新的工具，而不用担心污染系统环境。
+	刚知道这个东西时，会联想到虚拟机和影子系统，不过深入了解之后，你会发现相比于后两者，virtualenv更为便捷。不需要重启系统切换各种影子模式，也不需要启动虚拟机拖累你的物理系统。你只需要通过命令创建一个虚拟环境，不用的时候通过命令退出，甚至删除都可以。
+正文
+	1.安装pip（系统已经安装了pip的，这一步略过）
+		#cd /tmp
+		#wget https://bootstrap.pypa.io/get-pip.py
+		#sudo python get-pip.py
+		使用virtualenv创建python沙盒（虚拟）环境
+	2.安装virtualenv
+		#sudo pip install virtualenv
+		使用virtualenv创建python沙盒（虚拟）环境
+	3.使用virtualenv创建运行环境
+		#virtualenv ENV1
+		使用virtualenv创建python沙盒（虚拟）环境
+		发现当前目录下多了一个ENV1目录
+	4.进入ENV1目录并激活当前环境
+		#cd ENV1
+		#source bin/activate
+		使用virtualenv创建python沙盒（虚拟）环境
+		你会发现在shell提示符前面多了(ENV1)这个提示，这就说明你已经是在虚拟环境中，在这个里面你可以安装任意的python库，而不用担心会把系统自带的python库搞乱。
+		使用virtualenv创建python沙盒（虚拟）环境  pip install freeze
+		pip list
+		 pip freeze #显示所有依赖
+		 pip freeze > requirement.txt #生成requirement.txt文件
+		 pip install -r requirement.txt #根据requirement.txt生成相同的环境
+	5.停止使用虚拟环境可以使用命令 deactivate
+		使用virtualenv创建python沙盒（虚拟）环境
+	6.关于virtualenv其他的一些用法
+		删除虚拟环境：删除目录即可
+		指定virtualenv中的python版本：virtualenv –no-site-packages –python=2.7 env
+Note:
+	1. –-no-site-packages表示不包括系统全局的Python安装包，这样会更令环境更干净
+	2. -–python=python2.7指定Python的版本
+	3. env是建立的虚拟环境名称

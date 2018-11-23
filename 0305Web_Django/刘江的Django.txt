@@ -1,0 +1,1381 @@
+http://www.liujiangblog.com/course/django/2
+目 录
+	Django教程
+	Django简介
+	Django环境安装
+	第一个Django应用
+		Part 1：请求与响应
+		Part 2：模型与管理后台
+		Part 3：视图和模板
+		Part 4：表单和类视图
+		Part 5：测试
+		Part 6：静态文件
+		Part 7：自定义admin站点
+	第一章：模型层model layer
+		模型和字段
+		关系类型字段
+		字段的参数
+		多对多中间表详解
+		模型的元数据Meta
+		模型的继承
+		用包来组织模型
+		查询操作
+		查询集API
+		不返回QuerySets的API
+		字段查询参数及聚合函数
+	第二章：视图层view layer
+		Django2.0 URL配置
+		URL路由基础
+		路由转发
+		URL反向解析和命名空间
+		视图函数及快捷方式
+		HttpRequest对象
+		QueryDict对象
+		HttpResponse对象
+		文件上传
+		动态生成CSV文件
+		动态生成PDF文件
+	第三章：模版层Template layer
+		Django模板语言详解
+		Django内置模板标签
+		Django内置模版过滤器
+		特殊的标签和过滤器
+		人类可读性
+		自定义模板标签和过滤器
+	第四章：Django表单
+		使用表单
+		Django表单API详解
+		Django表单字段汇总
+		表单的Widgets
+		模型表单ModelForm
+	第五章：Admin管理后台
+		自定制Admin
+		自定义Admin actions
+		Admin文档生成器
+	第六章：Django 综合篇
+		配置 Django
+		核心配置项
+		使用MySQL数据库
+		django-admin和manage.py
+		自定义django-admin命令
+		会话session
+		网站地图sitemap
+		信号 signal
+		序列化 serializers
+		消息框架 message
+		分页 Paginator
+		聚合内容 RSS/Atom
+		发送邮件
+		Django 日志
+		Django与缓存
+		认证系统 Authentication
+		Django与CSRF 、AJAX
+		Django 国际化和本地化
+		部署 Django
+	实战一：用户登录与注册系统
+		1. 搭建项目环境
+		2. 设计数据模型
+		3. admin后台
+		4. url路由和视图
+		5. 前端页面设计
+		6. 登录视图
+		7. Django表单
+		8. 图片验证码
+		9. session会话
+		10. 注册视图
+		11.使用Django发送邮件
+		12. 邮件注册确认
+		13. 使用Github管理项目
+	实战二：CMDB之资产管理系统
+		1.项目需求分析
+		2.模型设计
+		3.数据收集客户端
+		4.Windows下收集数据
+		5.Linux下收集数据
+		6.新资产待审批区
+		7.审批新资产
+		8.已上线资产信息更新
+		9.前端框架AdminLTE
+		10.资产总表
+		11.资产详细页面
+		12.dashboard仪表盘
+
+*************************************************************************************************************************
+												目 录
+*************************************************************************************************************************
+Django简介
+	Django：发布于2003年，是当前Python世界里最负盛名且最成熟的Web框架，最初被用来制作在线新闻的Web站点。Django的各模块之间结合得比较紧密，所以在功能强大的同时又是一个相对封闭的系统（依然是可以自定义的），但是其健全的在线文档及开发社区，使开发者在遇到问题时能找到解决办法。
+
+	Tornado：一个强大的、支持协程、高效并发且可扩展的Web服务器，发布于2009年9月，应用于FriendFeed、Facebook等社交网站。它的强项在于可以利用异步协程机制实现高并发的服务。
+
+	Flask：Python Web框架家族里比较年轻的一个，发布于2010年，它吸收了其他框架的优点并且把自己的主要领域定义在了微小项目上，以短小精干，简洁明了著称。
+
+	Twisted：一个有着十多年历史的开源事件驱动框架。它不像前三种着眼于Web应用开发，而是适用从传输层到自定义应用协议的所有类型的网络程序的开发，并能在不同的操作系统上提供很高的运行效率。但是，目前对Python3的支持有限，建议使用Python2.7。
+
+	有这么多的Web框架，我们没有那么多的精力全都学一遍，也不可能全部精通，必然要有所取舍，那么该如何选择呢？有哪些可以参考的原则呢？
+
+	选择更主流的框架。因为它们的文档更齐全，技术积累更多，社区更繁盛，能得到更好的帮助和支持。
+	选择更活跃的框架。关注项目在GitHub等环境中的更新频率、Issue和Pull Request的响应情况。如果一个项目长期没有更新，或者有一堆的问题需要解决但是没有得到响应，就不应该是你学习的对象。
+	选择能够满足需求的框架。没有最好的框架，只有更合适的框架。你所选择的Web框架不仅需要满足当前的需求，还要充分考虑项目发展一段时间后的情况，即前瞻性，避免盲目选择而导致将来推倒重来的情况。
+	选择时效性好的框架。在学习和使用框架的时候经常需要查阅和参考各种网络上的文章、博客和教程，但是需要注意他们的发表时间。有些框架的相关文章已经很老了，很久没更新了，应该放弃这种框架；有的框架一直以来都有不断的新文章、新博客出现，就是比较不错的选择。
+	选择入门友好的框架。这条只对新手适用。详细的框架文档、官方教程对新手来说都是极大的帮助和鼓励。
+	以上的几条原则不一定正确和完整，但可以作为基本的选择依据，因此推荐大家从Django开始学习！作为最知名、应用最广泛、功能最全面的Django，它能够满足从大型到小型各种应用的需求，在GitHub上非常活跃，版本迭代速度也非常快，包含大量的组件和常用工具，网络上的学习和参考文章非常多，是个非常好的选择。另外，对于新手而言，Django有着完整的工具链，不需要你费脑筋去琢磨用哪个不用哪个，更适合入门。简单的比喻，如果说Flask是“DIY组装台式机”，性能优良，性价比高，自定义灵活，但是你得要知道如何搭配平台，如何组装各部件，如何更换部件等等，那么，Django就是“苹果一体机”，你不用管它内部组件是如何搭配，如何安装的，直接开机使用就好了。
+
+	想要熟练地使用Django进行Web开发，设计生产环境可用的，能够应对一定规模访问量的Web应用，开发者要学会的远远不止Django本身。Python基础、环境搭建、前端语言、API设计、网站架构、系统管理、持续集成、服务化、数据处理、并发处理等等，都是相关的知识领域，包括但不限于以下的内容：
+
+	熟悉Python语言
+	对前端的HTML\CSS\Javascript比较熟悉
+	熟悉数据库、缓存、消息队列等技术的使用场景和使用方法
+	日常能使用Linux或Mac系统工作（Windows属于标配）
+	有性能优化经验，能快速定位问题
+	除此之外，还要对业务有深刻理解，能够写出可维护性足够高的代码。当然，以上都是对经验丰富的开发者而言，对于新手刚入门者，我们朝着这个目标努力学习就好。
+Django环境安装
+	Django是由Python编写的Web框架，依赖Python环境，所以需要提前安装好Python解释器。
+	关于Python的安装，请参考站点中Python教程的相关部分，这里不再赘述。
+	建议安装最新版本的Python3，因为从Django2.0开始将不再支持Python2.7。
+	当前Python最新版本为3.6.3，安装完毕后，会自动安装pip工具包。
+	进行Python + Django的Web开发，最佳IDE环境是Pycharm，请大家自行安装。
+	当前时间点2017年10月，Django对Python版本的依赖关系如下表所示：
+		Django 版本	Python 版本
+		1.8	2.7, 3.2 (until the end of 2016), 3.3, 3.4, 3.5
+		1.9, 1.10	2.7, 3.4, 3.5
+		1.11	2.7, 3.4, 3.5, 3.6
+		2.0	3.4, 3.5, 3.6
+		2.1	3.5, 3.6, 3.7
+	一：安装Django
+		1.通过pip安装Django
+			如果你是通过升级的方式安装Django，那么你需要先卸载旧的版本。
+			Django提供3种发行版本，推荐使用官方的稳定版本：
+			你的操作系统提供的发行版本（Linux）
+			官方稳定版本（推荐）
+			开发测试版本
+			Django本质上是Python语言的一个类库，因此可以通过pip工具安装。这也是最简便最好的安装方式。不建议通过下载安装包或者编译源码进行安装的方法，除非你的环境无法连接外部网络。
+			这里介绍windows系统下pip命令安装方式。
+			win+r，调出cmd，运行命令：pip install django，自动安装PyPi提供的最新版本。
+			如果要指定版本，可使用pip install django==1.10这种形式。
+		2.验证安装(或者使用 pip list 命令,查看Django 模块),(python -m django --version)
+			终端输入 python3 
+			>>> import django
+			>>> print(django.get_version)
+
+		3.配置系统环境
+			以windows为例，在Python根目录下的Scripts目录中可找到一个django-admin.exe文件，这是Django的核心管理程序，最好将它加入操作系统的环境变量中，这样在以后的调用会比较方便。
+	二：测试Django
+		1. 在cmd或Linux命令行环境下创建Django项目
+			在windows的cmd环境中(Linux中类同)，新建或者进入你想创建Django项目的目录，然后输入下面的命令：
+			>>> django-admin startproject mysite
+			>>> dir
+				可以看到Django自动帮我们创建了一个mysite文件夹，这是项目的根目录。在mysite根目录中，又有一个mysite目录，这是整个项目的配置文件目录（一定不要和同名的根目录搞混淆了），还有一个manage.py文件，是整个项目的管理脚本
+			>>> Python manage.py runserver
+				在项目根目录下，运行Python manage.py runserver，Django会以127.0.0.1:8000这个默认配置启动开发服务器。
+		2.在pycharm中配置以及运行项目，相对简单，此处省略
+第一个Django应用
+	1.新建项目：~$ django-admin startproject mysite
+		$ django-admin startproject mysite
+		各文件和目录解释：
+			外层的mysite/目录与Django无关，只是你项目的容器，可以任意命名。
+				manage.py：一个命令行工具，用于与Django进行不同方式的交互脚本，非常重要！
+			内层的mysite/目录是真正的项目文件包裹目录，它的名字是你引用内部文件的包名，例如：mysite.urls。
+				mysite/__init__.py:一个定义包的空文件。
+				mysite/settings.py:项目的主配置文件，非常重要！
+				mysite/urls.py:路由文件，所有的任务都是从这里开始分配，相当于Django驱动站点的内容表格，非常重要！
+				mysite/wsgi.py:一个基于WSGI的web服务器进入点，提供底层的网络通信功能，通常不用关心。
+			PS：这一部分，我们可以在Pycharm环境下进行，参考上节内容。
+	2.新建应用：~/mysite$ python manage.py startapp polls
+		~$ cd mysite
+		~/mysite$ python manage.py startapp polls
+		app应用与project项目的区别：
+			一个app实现某个功能，比如博客、公共档案数据库或者简单的投票系统；
+			一个project是配置文件和多个app的集合，这些app组合成整个站点；
+			一个project可以包含多个app；
+			一个app可以属于多个project！
+			app的存放位置可以是任何地点，但是通常都将它们放在与manage.py脚本同级的目录下，这样方便导入文件。
+			进入mysite项目根目录，确保与manage.py文件处于同一级，输入下述命令：
+	3.启动开发服务器
+		在终端中输入：~/mysite$ python manage.py runserver
+					  ~/mysite$ python manage.py runserver 8080
+					  ~/mysite$ python manage.py runserver 0.0.0.0:8000 
+					  	 --->>> Django将运行在8000端口，整个局域网内都将可以访问站点，而不只是是本机。
+		打开浏览器，访问http://127.0.0.1:8000/，你将看到Django的欢迎界面，一切OK！
+	4.编写第一个视图
+	Part 1：请求与响应
+		一：polls/views.py 文件中，编写代码：
+			from django.http import HttpResponse
+			def index(request):
+			    return HttpResponse("Hello, world. You're at the polls index.")
+		二：# 为了调用该视图，我们还需要编写urlconf，也就是路由路径。现在，在polls目录中新建一个文件，名字为urls.py，
+		polls/urls.py 文件中，编写代码：
+			from django.conf.urls import url
+			from . import views
+			urlpatterns = [
+			    url(r'^$', views.index, name='index'),
+			]
+		三：在项目的主urls文件中添加urlpattern条目，指向我们刚才建立的polls这个app独有的urls文件，这里需要导入include模块。打开mysite/urls.py文件，代码如下：
+			from django.conf.urls import include, url
+			from django.contrib import admin
+			urlpatterns = [
+			    url(r'^polls/', include('polls.urls')),
+			    url(r'^admin/', admin.site.urls),
+			]
+		  PS：(include)
+			include语法相当于多级路由，它把接收到的url地址去除前面的正则表达式，将剩下的字符串传递给下一级路由进行判断。在路由的章节，有更加详细的用法指导。
+			include的背后是一种即插即用的思想。项目根路由不关心具体app的路由策略，只管往指定的二级路由转发，实现了应用解耦。app所属的二级路由可以根据自己的需要随意编写，不会和其它的app路由发生冲突。app目录可以放置在任何位置，而不用修改路由。这是软件设计里很常见的一种模式。
+			建议：除了admin路由外，尽量给每个app设计自己独立的二级路由。
+		  PS:(url(regex,view[,kwargs[,name]])方法:)
+
+			url()方法可以接收4个参数，其中2个是必须的：regex和view，以及2个可选的参数：kwargs和name。
+
+			regex：
+			regex是正则表达式的通用缩写，它是一种匹配字符串或url地址的语法。Django拿着用户请求的url地址，在urls.py文件中对urlpatterns列表中的每一项条目从头开始进行逐一对比，一旦遇到匹配项，立即执行该条目映射的视图函数或下级路由，其后的条目将不再继续匹配。因此，url路由的编写顺序非常重要！
+			需要注意的是，regex不会去匹配GET或POST参数或域名，例如对于https://www.example.com/myapp/，regex只尝试匹配myapp/。对于https://www.example.com/myapp/?page=3,regex也只尝试匹配myapp/。
+			如果你想深入研究正则表达式，可以读一些相关的书籍或专论，但是在Django的实际应用中，你不需要多高深的正则表达式知识，在Python教程部分有正则表达式相关专题，可供学习参考。
+			当URLconf模块加载的时候会预先编译正则表达式，因此它的匹配搜索速度非常快，你通常感觉不到。
+			view：(xxx_views)
+			view指的是处理当前url请求的视图函数。当正则表达式匹配到某个条目时，自动将封装的HttpRequest对象作为第一个参数，正则表达式“捕获”到的值作为第二个参数，传递给该条目指定的视图view。如果是简单捕获，那么捕获值将作为一个位置参数进行传递，如果是命名捕获，那么将作为关键字参数进行传递。
+			kwargs：(params=locals())
+			任意数量的关键字参数可以作为一个字典传递给目标视图。
+			name：(起别名)
+			对你的URL进行命名，让你能够在Django的任意处，尤其是模板内显式地引用它。这是一个非常强大的功能，相当于给URL取了个全局变量名，不会将url匹配地址写死。
+	Part 2：模型与管理后台
+		一、数据库安装
+			打开mysite/settings.py配置文件，这是整个Django项目的设置中心。Django默认使用SQLite数据库，因为Python源生支持SQLite数据库，所以你无须安装任何程序，就可以直接使用它。当然，如果你是在创建一个实际的项目，可以使用类似PostgreSQL的数据库，避免以后数据库迁移的相关问题。
+				# mysite/settings.py
+				# Database
+				# https://docs.djangoproject.com/en/1.11/ref/settings/#databases
+				DATABASES = {
+				    'default': {
+				        'ENGINE': 'django.db.backends.sqlite3',
+				        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+				    }
+				}
+			如果你想使用其他的数据库，请先安装相应的数据库操作模块，并将settings文件中DATABASES位置的’default’的键值进行相应的修改，用于连接你的数据库。其中：
+			ENGINE（引擎）：可以是django.db.backends.sqlite3、django.db.backends.postgresql、django.db.backends.mysql、django.db.backends.oracle，当然其它的也行。
+			NAME（名称）：类似Mysql数据库管理系统中用于保存项目内容的数据库的名字。如果你使用的是默认的SQLite，那么数据库将作为一个文件将存放在你的本地机器内，此时的NAME应该是这个文件的完整绝对路径包括文件名，默认值os.path.join(BASE_DIR, ’db.sqlite3’)，将把该文件储存在你的项目目录下。
+			如果你不是使用默认的SQLite数据库，那么一些诸如USER，PASSWORD和HOST的参数必须手动指定！下面给出一个基于pymysql操作Mysql数据库的例子，更多细节参考后续的数据库章节。
+			# mysite/settings.py
+			# Database
+			# https://docs.djangoproject.com/en/1.11/ref/settings/#databases
+
+			import pymysql         # 一定要添加这两行！通过pip install pymysql！可以将此导入直接配置在__init__.py文件中
+			pymysql.install_as_MySQLdb()
+
+			DATABASES = {
+			    'default': {
+			        'ENGINE': 'django.db.backends.mysql',
+			        'NAME': 'mysite',
+			        'HOST': '192.168.1.1',
+			        'USER': 'root',
+			        'PASSWORD': 'pwd',
+			        'PORT': '3306',
+			    }
+			}
+			注意：
+
+			在使用非SQLite的数据库时，请务必预先在数据库管理系统的提示符交互模式下创建数据库，你可以使用命令：
+			“CREATE DATABASE database_name;”。
+			# create database mysite default charset utf8 collate utf8_general_ci;
+			Django不会自动帮你做这一步工作。
+			确保你在settings文件中提供的数据库用户具有创建数据库表的权限，因为在接下来的教程中，我们需要自动创建一个test数据表。（在实际项目中也需要确认这一条要求。）
+			如果你使用的是SQLite，那么你无需做任何预先配置，直接使用就可以了。
+			在修改settings文件时，请顺便将TIME_ZONE设置为国内所在的时区Asia/Shanghai。
+
+			同时，请注意settings文件中顶部的INSTALLED_APPS设置项。它列出了所有的项目中被激活的Django应用（app）。你必须将你自定义的app注册在这里。每个应用可以被多个项目使用，并且可以打包和分发给其他人在他们的项目中使用。
+
+			默认情况，INSTALLED_APPS中会自动包含下列条目，它们都是Django自动生成的：
+
+			django.contrib.admin：admin管理后台站点
+			django.contrib.auth：身份认证系统
+			django.contrib.contenttypes：内容类型框架
+			django.contrib.sessions：会话框架
+			django.contrib.messages：消息框架
+			django.contrib.staticfiles：静态文件管理框架
+			上面的一些应用也需要建立一些数据库表，所以在使用它们之前我们要在数据库中创建这些表。使用下面的命令创建数据表：
+			$ python manage.py makemigration
+			$ python manage.py migrate --version
+			migrate命令将遍历INSTALLED_APPS设置中的所有项目，在数据库中创建对应的表，并打印出每一条动作信息。如果你感兴趣，可以在你的数据库命令行下输入：\dt (PostgreSQL)、 SHOW TABLES;(MySQL)或 .schema(SQLite) 来列出 Django 所创建的表。
+
+			提示：对于极简主义者，你完全可以在INSTALLED_APPS内注释掉任何或者全部的Django提供的通用应用。这样，migrate也不会再创建对应的数据表。
+
+		二、创建模型
+			现在，我们来定义模型model，模型本质上就是数据库表的布局，再附加一些元数据。
+
+			Django通过自定义Python类的形式来定义具体的模型，每个模型的物理存在方式就是一个Python的类Class，每个模型代表数据库中的一张表，每个类的实例代表数据表中的一行数据，类中的每个变量代表数据表中的一列字段。Django通过模型，将Python代码和数据库操作结合起来，实现对SQL查询语言的封装。也就是说，你可以不会管理数据库，可以不会SQL语言，你同样能通过Python的代码进行数据库的操作。Django通过ORM对数据库进行操作，奉行代码优先的理念，将Python程序员和数据库管理员进行分工解耦。
+
+			在这个简单的投票应用中，我们将创建两个模型：Question和Choice。Question包含一个问题和一个发布日期。Choice包含两个字段：该选项的文本描述和该选项的投票数。每一条Choice都关联到一个Question。这些都是由Python的类来体现，编写的全是Python的代码，不接触任何SQL语句。现在，编辑polls/models.py文件，具体代码如下：
+
+			# polls/models.py
+
+			from django.db import models
+
+			class Question(models.Model):
+			    question_text = models.CharField(max_length=200)
+			    pub_date = models.DateTimeField('date published')
+
+			    # 人性化输出字符串
+			    def __str__(self):
+			    	return self.question_text
+
+			class Choice(models.Model):
+			    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+			    choice_text = models.CharField(max_length=200)
+			    votes = models.IntegerField(default=0)
+			上面的代码非常简单明了。每一个类都是django.db.models.Model的子类。每一个字段都是Field类的一个实例，例如用于保存字符数据的CharField和用于保存时间类型的DateTimeField，它们告诉Django每一个字段保存的数据类型。
+
+			每一个Field实例的名字就是字段的名字（如： question_text 或者 pub_date ）。在你的Python代码中会使用这个值，你的数据库也会将这个值作为表的列名。
+
+			你也可以在每个Field中使用一个可选的第一位置参数用于提供一个人类可读的字段名，让你的模型更友好，更易读，并且将被作为文档的一部分来增强代码的可读性。
+
+			一些Field类必须提供某些特定的参数。例如CharField需要你指定max_length。这不仅是数据库结构的需要，同样也用于数据验证功能。
+
+			有必填参数，当然就会有可选参数，比如在votes里我们将其默认值设为0.
+
+			最后请注意，我们使用ForeignKey定义了一个外键关系。它告诉Django，每一个Choice关联到一个对应的Question（注意要将外键写在‘多’的一方）。Django支持通用的数据关系：一对一，多对一和多对多。
+
+		三、启用模型
+			上面的代码看着有点少，其实包含了大量的信息，据此，Django会做下面两件事：
+
+			创建该app对应的数据库表结构
+			为Question和Choice对象创建基于Python的数据库访问API
+			但是，首先我们得先告诉Django项目，我们要使用投票app。
+
+			要将应用添加到项目中，需要在INSTALLED_APPS设置中增加指向该应用的配置文件的链接。对于本例的投票应用，它的配置类文件是polls/apps.py，路径格式为polls.apps.PollsConfig。我们需要在INSTALLED_APPS中，将该路径添加进去：
+
+			# mysite/settings.py
+
+			INSTALLED_APPS = [
+			'polls.apps.PollsConfig',
+			'django.contrib.admin',
+			'django.contrib.auth',
+			'django.contrib.contenttypes',
+			'django.contrib.sessions',
+			'django.contrib.messages',
+			'django.contrib.staticfiles',
+			]
+			实际上，在多数情况下，我们简写成‘polls’就可以了：
+
+			# mysite/settings.py
+
+			INSTALLED_APPS = [
+			'polls',
+			'django.contrib.admin',
+			'django.contrib.auth',
+			'django.contrib.contenttypes',
+			'django.contrib.sessions',
+			'django.contrib.messages',
+			'django.contrib.staticfiles',
+			]
+			现在Django已经知道你的投票应用的存在了，并把它加入了项目大家庭。
+
+			我们需要再运行下一个命令：
+
+			$ python manage.py makemigrations polls
+			你会看到类似下面的提示：
+
+			Migrations for 'polls':
+			  polls/migrations/0001_initial.py:
+			    - Create model Choice
+			    - Create model Question
+			    - Add field question to choice
+			通过运行makemigrations命令，相当于告诉Django你对模型有改动，并且你想把这些改动保存为一个“迁移(migration)”。
+
+			migrations是Django保存模型修改记录的文件，这些文件保存在磁盘上。在例子中，它就是polls/migrations/0001_initial.py，你可以打开它看看，里面保存的都是人类可读并且可编辑的内容，方便你随时手动修改。
+
+			接下来有一个叫做migrate的命令将对数据库执行真正的迁移动作。但是在此之前，让我们先看看在migration的时候实际执行的SQL语句是什么。有一个叫做sqlmigrate的命令可以展示SQL语句，例如：
+
+			$ python manage.py sqlmigrate polls 0001
+			你将会看到如下类似的文本（经过适当的格式调整，方便阅读）：
+
+			BEGIN;
+			--
+			-- Create model Choice
+			--
+			CREATE TABLE "polls_choice" (
+			    "id" serial NOT NULL PRIMARY KEY,
+			    "choice_text" varchar(200) NOT NULL,
+			    "votes" integer NOT NULL
+			);
+			--
+			-- Create model Question
+			--
+			CREATE TABLE "polls_question" (
+			    "id" serial NOT NULL PRIMARY KEY,
+			    "question_text" varchar(200) NOT NULL,
+			    "pub_date" timestamp with time zone NOT NULL
+			);
+			--
+			-- Add field question to choice
+			--
+			ALTER TABLE "polls_choice" ADD COLUMN "question_id" integer NOT NULL;
+			ALTER TABLE "polls_choice" ALTER COLUMN "question_id" DROP DEFAULT;
+			CREATE INDEX "polls_choice_7aa0f6ee" ON "polls_choice" ("question_id");
+			ALTER TABLE "polls_choice"
+			    ADD CONSTRAINT "polls_choice_question_id_246c99a640fbbd72_fk_polls_question_id"
+			    FOREIGN KEY ("question_id")
+			    REFERENCES "polls_question" ("id")
+			    DEFERRABLE INITIALLY DEFERRED;
+			COMMIT;
+			请注意：
+
+			实际的输出内容将取决于您使用的数据库会有所不同。上面的是PostgreSQL的输出。
+			表名是自动生成的，通过组合应用名 (polls) 和小写的模型名question和choice 。 ( 你可以重写此行为。)
+			主键 (IDs) 是自动添加的。( 你也可以重写此行为。)
+			按照惯例，Django 会在外键字段名上附加 "_id" 。 (你仍然可以重写此行为。)
+			生成SQL语句时针对你所使用的数据库，会为你自动处理特定于数据库的字段，例如 auto_increment (MySQL), serial (PostgreSQL), 或integer primary key (SQLite) 。 在引用字段名时也是如此 – 比如使用双引号或单引号。
+			这些SQL命令并没有在你的数据库中实际运行，它只是在屏幕上显示出来，以便让你了解Django真正执行的是什么。
+			如果你感兴趣，也可以运行python manage.py check命令，它将检查项目中的错误，并不实际进行迁移或者链接数据库的操作。
+
+			现在，我们可以运行migrate命令，在数据库中进行真正的表操作了。
+
+			$ python manage.py migrate
+			Operations to perform:
+			    Apply all migrations: admin, auth, contenttypes, polls, sessions
+			Running migrations:
+			    Rendering model states... DONE
+			    Applying polls.0001_initial... OK
+			migrate命令对所有还未实施的迁移记录进行操作，本质上就是将你对模型的修改体现到数据库中具体的表上面。Django通过一张叫做django_migrations的表，记录并跟踪已经实施的migrate动作，通过对比获得哪些migrations尚未提交。
+
+			migrations的功能非常强大，允许你随时修改你的模型，而不需要删除或者新建你的数据库或数据表，在不丢失数据的同时，实时动态更新数据库。我们将在后面的章节对此进行深入的阐述，但是现在，只需要记住修改模型时的操作分三步：
+
+			在models.py中修改模型；
+			运行python manage.py makemigrations为改动创建迁移记录；
+			运行python manage.py migrate，将操作同步到数据库。
+			之所以要将创建和实施迁移的动作分成两个命令两步走是因为你也许要通过版本控制系统（例如github，svn）提交你的项目代码，如果没有一个中间过程的保存文件（migrations），那么github如何知道以及记录、同步、实施你所进行过的模型修改动作呢？毕竟，github不和数据库直接打交道，也没法和你本地的数据库通信。但是分开之后，你只需要将你的migration文件（例如上面的0001）上传到github，它就会知道一切。
+
+		四、使用模型的API
+			下面，让我们进入Python交互环境，尝试使用Django提供的数据库访问API。要进入Python的shell，请输入命令：
+
+			$ python manage.py shell
+			相比较直接输入“python”命令的方式进入Python环境，调用manage.py参数能将DJANGO_SETTINGS_MODULE环境变量导入，它将自动按照mysite/settings.py中的设置，配置好你的python shell环境，这样，你就可以导入和调用任何你项目内的模块了。
+
+			或者你也可以这样，先进入一个纯净的python shell环境，然后启动Django，具体如下：
+
+			>>> import django
+			>>> django.setup()
+			当你进入shell后，尝试一下下面的API吧：
+
+			    >>> from polls.models import Question, Choice # 导入我们写的模型类
+			    # 现在系统内还没有questions对象
+			    >>> Question.objects.all()
+			    <QuerySet []>
+
+			    # 创建一个新的question对象
+			    # Django推荐使用timezone.now()代替python内置的datetime.datetime.now()
+			    # 这个timezone就来自于Django唯一的依赖库pytz
+			    from django.utils import timezone
+			    >>> q = Question(question_text="What's new?", pub_date=timezone.now())
+
+			    # 你必须显式的调用save()方法，才能将对象保存到数据库内
+			    >>> q.save()
+
+			    # 默认情况，你会自动获得一个自增的名为id的主键
+			    >>> q.id
+			    1
+
+			    # 通过python的属性调用方式，访问模型字段的值
+			    >>> q.question_text
+			    "What's new?"
+			    >>> q.pub_date
+			    datetime.datetime(2012, 2, 26, 13, 0, 0, 775217, tzinfo=<UTC>)
+
+			    # 通过修改属性来修改字段的值，然后显式的调用save方法进行保存。
+			    >>> q.question_text = "What's up?"
+			    >>> q.save()
+
+			    # objects.all() 用于查询数据库内的所有questions
+			    >>> Question.objects.all()
+			    <QuerySet [<Question: Question object>]>
+			这里等一下：上面的<Question: Question object>是一个不可读的内容展示，你无法从中获得任何直观的信息，为此我们需要一点小技巧，让Django在打印对象时显示一些我们指定的信息。
+
+			返回polls/models.py文件，修改一下question和Choice这两个类，代码如下：
+
+			from django.db import models
+			from django.utils.encoding import python_2_unicode_compatible
+
+			@python_2_unicode_compatible # 当你想支持python2版本的时候才需要这个装饰器
+			class Question(models.Model):
+			    # ...
+			    def __str__(self):   # 在python2版本中使用的是__unique__
+			        return self.question_text
+
+			@python_2_unicode_compatible 
+			class Choice(models.Model):
+			    # ...
+			    def __str__(self):
+			        return self.choice_text
+			这个技巧不但对你打印对象时很有帮助，在你使用Django的admin站点时也同样有帮助。
+
+			另外，这里我们自定义一个模型的方法，用于判断问卷是否最近时间段内发布度的：
+
+			import datetime
+			from django.db import models
+			from django.utils import timezone
+
+			class Question(models.Model):
+			    # ...
+			    def was_published_recently(self):
+			        return self.pub_date >= timezone.now() - datetime.timedelta(days=1)
+			请注意上面分别导入了两个关于时间的模块，一个是python内置的datetime一个是Django工具包提供的timezone。
+
+			保存修改后，我们重新启动一个新的python shell，再来看看其他的API：
+
+			>>> from polls.models import Question, Choice
+
+			# 先看看__str__()的效果，直观多了吧？
+			>>> Question.objects.all()
+			<QuerySet [<Question: What's up?>]>
+
+			# Django提供了大量的关键字参数查询API
+			>>> Question.objects.filter(id=1)
+			<QuerySet [<Question: What's up?>]>
+			>>> Question.objects.filter(question_text__startswith='What')
+			<QuerySet [<Question: What's up?>]>
+
+			# 获取今年发布的问卷
+			>>> from django.utils import timezone
+			>>> current_year = timezone.now().year
+			>>> Question.objects.get(pub_date__year=current_year)
+			<Question: What's up?>
+
+			# 查询一个不存在的ID，会弹出异常
+			>>> Question.objects.get(id=2)
+			Traceback (most recent call last):
+			...
+			DoesNotExist: Question matching query does not exist.
+
+			# Django为主键查询提供了一个缩写：pk。下面的语句和Question.objects.get(id=1)效果一样.
+			>>> Question.objects.get(pk=1)
+			<Question: What's up?>
+
+			# 看看我们自定义的方法用起来怎么样
+			>>> q = Question.objects.get(pk=1)
+			>>> q.was_published_recently()
+			True
+
+			# 让我们试试主键查询
+			>>> q = Question.objects.get(pk=1)
+
+			# 显示所有与q对象有关系的choice集合，目前是空的，还没有任何关联对象。
+			>>> q.choice_set.all()
+			<QuerySet []>
+
+			# 创建3个choices.
+			>>> q.choice_set.create(choice_text='Not much', votes=0)
+			<Choice: Not much>
+			>>> q.choice_set.create(choice_text='The sky', votes=0)
+			<Choice: The sky>
+			>>> c = q.choice_set.create(choice_text='Just hacking again', votes=0)
+
+			# Choice对象可通过API访问和他们关联的Question对象
+			>>> c.question
+			<Question: What's up?>
+
+			# 同样的，Question对象也可通过API访问关联的Choice对象
+			>>> q.choice_set.all()
+			<QuerySet [<Choice: Not much>, <Choice: The sky>, <Choice: Just hacking again>]>
+			>>> q.choice_set.count()
+			3
+
+			# API会自动进行连表操作，通过双下划线分割关系对象。连表操作可以无限多级，一层一层的连接。
+			# 下面是查询所有的Choices，它所对应的Question的发布日期是今年。（重用了上面的current_year结果）
+			>>> Choice.objects.filter(question__pub_date__year=current_year)
+			<QuerySet [<Choice: Not much>, <Choice: The sky>, <Choice: Just hacking again>]>
+
+			# 使用delete方法删除对象
+			>>> c = q.choice_set.filter(choice_text__startswith='Just hacking')
+			>>> c.delete()
+			关于模型的使用就暂时先介绍这么多。这部分内容是Django项目的核心，也是动态网站与数据库交互的核心，对于初学者，再难理解也要理解。
+
+		五、admin后台管理站点
+			很多时候，我们不光要开发针对客户使用的前端页面，还要给后台管理人员提供相应的管理界面。但是大多数时候为你的团队或客户编写用于增加、修改和删除内容的后台管理站点是一件非常乏味的工作并且没有多少创造性，而且也需要花不少的时间和精力。Django最大的优点之一，就是体贴的为你提供了一个基于项目model创建的一个后台管理站点admin。这个界面只给站点管理员使用，并不对大众开放。虽然admin的界面可能不是那么美观，功能不是那么强大，内容不一定符合你的要求，但是它是免费的、现成的，并且还是可定制的，有完善的帮助文档，那么，你还要什么自行车？
+
+			1. 创建管理员用户
+			首先，我们需要通过下面的命令，创建一个可以登录admin站点的用户：
+
+			$ python manage.py createsuperuser
+			输入用户名：
+
+			Username: admin
+			输入邮箱地址：
+
+			Email address: xxx@xxx.xxx
+			输入密码：
+
+			Password: **********
+			Password (again): *********
+			Superuser created successfully.
+			注意：Django1.10版本后，超级用户的密码强制要求具备一定的复杂性，不能再偷懒了。
+
+			2. 启动开发服务器
+			服务器启动后，在浏览器访问http://127.0.0.1:8000/admin/。你就能看到admin的登陆界面了：
+
+			在实际环境中，为了站点的安全性，我们不能将管理后台的url随便暴露给他人，不能用/admin/这么简单的路径。
+
+			打开根url路由文件mysite/urls.py，修改其中admin.site.urls对应的正则表达式，换成你想要的，比如：
+
+			from django.conf.urls import url
+			from django.contrib import admin
+
+			urlpatterns = [
+			    url(r'^my/set/', admin.site.urls),
+			]
+			这样，我们必须访问http://127.0.0.1:8000/my/set/才能进入admin界面。
+
+			3. 进入admin站点
+			利用刚才建立的admin账户，登陆admin，你将看到如下的界面：
+
+			当前只有两个可编辑的内容：groups和users。它们是django.contrib.auth模块提供的身份认证框架。
+
+			4. 在admin中注册投票应用
+			现在还无法看到投票应用，必须先在admin中进行注册，告诉admin站点，请将polls的模型加入站点内，接受站点的管理。
+
+			打开polls/admin.py文件，加入下面的内容：
+
+			from django.contrib import admin
+			from .models import Question
+
+			admin.site.register(Question)
+			4. admin站点的主要功能
+			注册question模型后，刷新admin页面就能看到Question栏目了。
+
+			点击“Questions”，进入questions的修改列表页面。这个页面会显示所有的数据库内的questions对象，你可以在这里对它们进行修改。看到下面的“What’s up?”了么？它就是我们先前创建的一个question对象，并且通过__str__方法的帮助，显示了较为直观的信息，而不是一个冷冰冰的对象类型名称。
+
+			下面，点击What’s up?进入编辑界面：
+
+			这里需要注意的是：
+
+			页面中的表单是由Question模型自动生成的。
+			不同的模型字段类型(DateTimeField, CharField)会表现为不同的HTML input框类型。
+			每一个DateTimeField都会自动生成一个可点击链接。日期是Today，并有一个日历弹出框；时间是Now，并有一个通用的时间输入列表框。
+			在页面的底部，则是一些可选项按钮：
+
+			delete：弹出一个删除确认页面
+			save and add another：保存当前修改，并加载一个新的空白的当前类型对象的表单。
+			save and continue editing：保存当前修改，并重新加载该对象的编辑页面。
+			save：保存修改，返回当前对象类型的列表页面。
+			如果Date published字段的值和你在前面教程创建它的时候不一致，可能是你没有正确的配置TIME_ZONE，在国内，通常是8个小时的时间差别。修改TIME_ZONE配置并重新加载页面，就能显示正确的时间了。
+
+			在页面的右上角，点击History按钮，你会看到你对当前对象的所有修改操作都在这里有记录，包括修改时间和操作人员，
+	Part 3：视图和模板
+		一、概述
+			一个视图就是一个页面，通常提供特定的功能，使用特定的模板。例如：在一个博客应用中，你可能会看到下列视图：
+
+			博客主页：显示最新发布的一些内容
+			每篇博客的详细页面：博客的永久链接
+			基于年的博客页面：显示指定年内的所有博客文章
+			基于月的博客页面：显示指定月内的所有博客文章
+			基于天的博客页面：显示指定日内的所有博客文章
+			发布评论：处理针对某篇博客发布的评论
+			在我们的投票应用中，我们将建立下面的视图：
+
+			问卷“index”页：显示最新的一些问卷
+			问卷“detail”页面：显示一个问卷的详细文本内容，没有调查结果但是有一个投票或调查表单。
+			问卷“results”页面：显示某个问卷的投票或调查结果。
+			投票动作页面：处理针对某个问卷的某个选项的投票动作。
+			在Django中，网页和其它的一些内容都是通过视图来处理的。视图其实就是一个简单的Python函数（在基于类的视图中称为方法）。Django通过对比请求的URL地址来选择对应的视图。
+
+		二、编写视图 (polls/views.py) | (polls/urls.py)
+			下面，打开polls/views.py文件，输入下列代码：
+
+			def detail(request, question_id):
+			    return HttpResponse("You're looking at question %s." % question_id)
+
+			def results(request, question_id):
+			    response = "You're looking at the results of question %s."
+			    return HttpResponse(response % question_id)
+
+			def vote(request, question_id):
+			    return HttpResponse("You're voting on question %s." % question_id)
+			然后，在polls/urls.py文件中加入下面的url模式，将其映射到我们上面新增的视图。
+
+			from django.conf.urls import url
+			from . import views
+
+			urlpatterns = [
+			    # ex: /polls/
+			    url(r'^$', views.index, name='index'),
+			    # ex: /polls/5/
+			    url(r'^(?P<question_id>[0-9]+)/$', views.detail, name='detail'),
+			    # ex: /polls/5/results/
+			    url(r'^(?P<question_id>[0-9]+)/results/$', views.results, name='results'),
+			    # ex: /polls/5/vote/
+			    url(r'^(?P<question_id>[0-9]+)/vote/$', views.vote, name='vote'),
+			]
+			现在去浏览器中访问/polls/34/（注意：这里省略了域名。另外，使用了二级路由后，url中都要添加polls部分，参考前面的章节），它将调用detail()函数，然后在页面中显示你在url里提供的ID。访问/polls/34/results/和/polls/34/vote/，将分别显示预定义的伪结果和投票页面。(PS:这里就不贴图了，请大家务必自己动手测试，多实践。）
+
+			上面访问的路由过程如下：当有人访问/polls/34/地址时，Django将首先加载mysite.urls模块，因为它是settings文件里设置的根URL配置文件。在该文件里，Django发现了urlpatterns变量，于是在其内按顺序进行匹配。当它匹配上了^polls/，就裁去url中匹配的文本polls/，然后将剩下的文本“34/”，传递给polls.urls进行下一步的处理。在polls.urls中，又匹配到了r’^(?P<question_id>[0-9]+)/$’，最终结果就是调用该模式对应的detail()视图，也就是下面的函数：
+
+			detail(request=<HttpRequest object>, question_id='34')
+			函数中的question_id=’34’参数，是由(?P<question_id>[0-9]+)而来。在正则表达式中通过一个双圆括号，Django会捕获它匹配到的值并传递给对应的视图，作为视图的位置参数之一，而?P<question_id>则表示我要给这个捕获的值指定一个特殊的变量名，在视图中可以通过question_id这个变量名随意的引用它，形成一个关键字参数，不用考虑参数的位置。至于[0-9]+则是一个很简单的原生正则表达式，用于匹配一系列连续的数字，它匹配到的值也就是具体要传递的参数值。
+
+			所有的URL模式都是正则表达式，Django不限制你在url模式中的书写方式。但是，你真的没必要书写一个如下的较为愚蠢的包含.html的模式，它显然是没必要，不够简练的：
+
+			url(r'^polls/latest\.html$', views.index),
+			你完全可以用下面的模式代替上面的：
+
+			url(r'^polls/latest$', views.index),
+		三、编写能实际干点活的视图
+			每个视图至少做两件事之一：返回一个包含请求页面的HttpResponse对象或者弹出一个类似Http404的异常。其它的则随你便，你爱干嘛干嘛。
+
+			下面是一个新的index()视图，用于替代先前无用的index，它会根据发布日期显示最近的5个投票问卷。
+
+			from django.http import HttpResponse
+
+			from .models import Question
+
+			def index(request):
+			    latest_question_list = Question.objects.order_by('-pub_date')[:5]
+			    output = ', '.join([q.question_text for q in latest_question_list])
+			    return HttpResponse(output)
+
+			# 下面是那些没改动过的视图(detail, results, vote)
+			这里有个非常重要的问题：在当前视图中的HTML页面是硬编码的。如果你想改变页面的显示内容，就必须修改这里的Python代码。为了解决这个问题，需要使用Django提供的模板系统，解耦视图和模板之间的硬连接。
+
+			首先，在polls目录下创建一个新的templates目录，Django会在它里面查找模板文件。在templates目录中，再创建一个新的子目录名叫polls，进入该子目录，创建一个新的html文件index.html。换句话说，你的模板文件应该是polls/templates/polls/index.html。可以在DJango中直接使用polls/index.html引用该文件。
+
+			注意：在Pycharm中，templates文件夹通常已经帮你创建好了！
+			模板命名空间：
+
+			你也许会想，为什么不把模板文件直接放在polls/templates目录下，而是费劲的再建个子目录polls呢?设想这么个情况，有另外一个app，它也有一个名叫index.html的文件，当Django在搜索模板时，有可能就找到它，然后退出搜索，这就命中了错误的目标，不是我们想要的结果。解决这个问题的最好办法就是在templates目录下再建立一个与app同名的子目录，将自己所属的模板都放到里面，从而达到独立命名空间的作用，不会再出现引用错误。
+
+			现在，将下列代码写入文件polls/templates/polls/index.html:
+
+			{% if latest_question_list %}
+			    <ul>
+			    {% for question in latest_question_list %}
+			    <li><a href="/polls/{{ question.id }}/">{{ question.question_text }}</a></li>
+			    {% endfor %}
+			    </ul>
+			{% else %}
+			    <p>No polls are available.</p>
+			{% endif %}
+			同时，修改视图文件polls/views.py，让新的index.html文件生效：
+
+			from django.http import HttpResponse
+			from django.template import loader
+			from .models import Question
+
+			def index(request):
+			    latest_question_list = Question.objects.order_by('-pub_date')[:5]
+			    template = loader.get_template('polls/index.html')
+			    context = {
+			    'latest_question_list': latest_question_list,
+			    }
+			    return HttpResponse(template.render(context, request))
+			上面的代码会加载polls/index.html文件，并传递给它一个参数。这个参数是一个字典，包含了模板变量名和Python对象之间的映射关系。
+
+			在浏览器中通过访问/polls/，你可以看到一个列表，包含“What’s up”的问卷，以及连接到其对应详细内容页面的链接点。
+
+			如果你显示的是No polls are available.说明你前面没有添加Questions对象。没关系，我们手动添加一下就可以。
+
+			进入admin界面，选择Questions，点击右上角的Add question，如下操作。
+
+
+			添加完后，刷新/polls/页面。
+
+			快捷方式：render()
+
+			在实际运用中，加载模板、传递参数，返回HttpResponse对象是一整套再常用不过的操作了，为了节省力气，Django提供了一个快捷方式：render函数，一步到位！看如下代码：
+
+			polls/views.py
+
+			from django.shortcuts import render
+			from .models import Question
+			def index(request):
+			    latest_question_list = Question.objects.order_by('-pub_date')[:5]
+			    context = {'latest_question_list': latest_question_list}
+			    return render(request, 'polls/index.html', context)
+			render()函数的第一个位置参数是请求对象（就是view函数的第一个参数），第二个位置参数是模板。还可以有一个可选的第三参数，一个字典，包含需要传递给模板的数据。最后render函数返回一个经过字典数据渲染过的模板封装而成的HttpResponse对象。
+
+			四、返回404错误
+			现在让我们来编写返回具体问卷文本内容的视图polls/views.py：
+
+			from django.http import Http404
+			from django.shortcuts import render
+			from .models import Question
+			# ...
+			def detail(request, question_id):
+			    try:
+			        question = Question.objects.get(pk=question_id)
+			    except Question.DoesNotExist:
+			        raise Http404("Question does not exist")
+			    return render(request, 'polls/detail.html', {'question': question})
+			这里有个新知识点，如果请求的问卷ID不存在，那么会弹出一个Http404错误。
+
+			新建polls/detail.html文件，暂时写入下面的代码：
+
+			{{ question }}
+			快捷方式：get_object_or_404()
+
+			就像render函数一样，Django同样为你提供了一个偷懒的方式，替代上面的多行代码，那就是get_object_or_404()方法，参考下面的代码：
+
+			polls/views.py
+
+			from django.shortcuts import get_object_or_404, render
+			from .models import Question
+			# ...
+			def detail(request, question_id):
+			    question = get_object_or_404(Question, pk=question_id)
+			    return render(request, 'polls/detail.html', {'question': question})
+			别说我没提醒你，和render一样，也需要从Django内置的快捷方式模块中导出get_object_or_404()！
+
+			get_object_or_404()方法将一个Django模型作为第一个位置参数，后面可以跟上任意个数的关键字参数，如果对象不存在则弹出Http404错误。
+
+			同样，还有一个get_list_or_404()方法，和上面的get_object_or_404()类似，只不过是用来替代filter()函数，当查询列表为空时弹出404错误。（filter是模型API中用来过滤查询结果的函数，它的结果是一个列表集。而get则是查询一个结果的方法，和filter是一个和多个的区别！）
+
+			五、 使用模板系统
+			detail()视图会将上下文变量question传递给对应的polls/templates/polls/detail.html模板，修改该模板的内容，如下所示：
+
+			<h1>{{ question.question_text }}</h1>
+			<ul>
+			{% for choice in question.choice_set.all %}
+			    <li>{{ choice.choice_text }}</li>
+			{% endfor %}
+			</ul>
+			在模板系统中圆点.是万能的魔法师，你可以用它访问对象的属性。在例子{{ question.question_text }}中，DJango首先会在question对象中尝试查找一个字典，如果失败，则尝试查找属性，如果再失败，则尝试作为列表的索引进行查询。
+
+			在 {% for %}循环中的方法调用——question.choice_set.all其实就是Python的代码question.choice_set.all(),它将返回一组可迭代的Choice对象，并用在{% for %}标签中。
+
+			这里我们对Django模板语言有个简单的印象就好，更深入的介绍放在后面。
+
+			六、删除模板中硬编码的URLs
+			在polls/index.html文件中，还有一部分硬编码存在，也就是href里的“/polls/”部分：
+
+			<li><a href="/polls/{{ question.id }}/">{{ question.question_text }}</a></li>
+			它对于代码修改非常不利。设想如果你在urls.py文件里修改了正则表达式，那么你所有的模板中对这个url的引用都需要修改，这是无法接受的！
+
+			我们前面给urls定义了一个name别名，可以用它来解决这个问题。具体代码如下：
+
+			<li><a href="{% url 'detail' question.id %}">{{ question.question_text }}</a></li>
+			Django会在polls.urls文件中查找name='detail'的url，具体的就是下面这行：
+
+			url(r'^(?P<question_id>[0-9]+)/$', views.detail, name='detail'),
+			举个栗子，如果你想将polls的detail视图的URL更换为polls/specifics/12/，那么你不需要在模板中重新修改url地址了，仅仅只需要在polls/urls.py文件中，将对应的正则表达式改成下面这样的就行了，所有模板中对它的引用都会自动修改成新的链接：
+
+			# 添加新的单词'specifics'
+			url(r'^specifics/(?P<question_id>[0-9]+)/$', views.detail, name='detail'),
+			七、URL names的命名空间
+			本教程例子中，只有一个app也就是polls，但是在现实中很显然会有5个、10个、更多的app同时存在一个项目中。Django是如何区分这些app之间的URL name呢？
+
+			答案是使用URLconf的命名空间。在polls/urls.py文件的开头部分，添加一个app_name的变量来指定该应用的命名空间：
+
+			from django.conf.urls import url
+			from . import views
+
+			app_name = 'polls'  # 关键是这行
+			urlpatterns = [
+			    url(r'^$', views.index, name='index'),
+			    url(r'^(?P<question_id>[0-9]+)/$', views.detail, name='detail'),
+			    url(r'^(?P<question_id>[0-9]+)/results/$', views.results, name='results'),
+			    url(r'^(?P<question_id>[0-9]+)/vote/$', views.vote, name='vote'),
+			]
+			现在，让我们将代码修改得更严谨一点，将polls/templates/polls/index.html中的
+
+			<li><a href="{% url 'detail' question.id %}">{{ question.question_text }}</a></li>
+			修改为：
+
+			<li><a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a></li>
+			注意引用方法是冒号而不是圆点也不是斜杠！！！！！！！！！！！！	
+	Part 4：表单和类视图
+		一、表单form
+			为了接收用户的投票选择，我们需要在前端页面显示一个投票界面。让我们重写先前的polls/detail.html文件，代码如下：
+
+			<h1>{{ question.question_text }}</h1>
+
+			{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+			<form action="{% url 'polls:vote' question.id %}" method="post">
+			{% csrf_token %}
+			{% for choice in question.choice_set.all %}
+			    <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}" />
+			    <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br />
+			{% endfor %}
+			<input type="submit" value="Vote" />
+			</form>
+			简要说明：
+
+			上面的模板显示一系列单选按钮，按钮的值是选项的ID，按钮的名字是字符串"choice"。这意味着，当你选择了其中某个按钮，并提交表单，一个包含数据choice=#的POST请求将被发送到指定的url，#是被选择的选项的ID。这就是HTML表单的基本概念。
+			如果你有一定的前端开发基础，那么form标签的action属性和method属性你应该很清楚它们的含义，action表示你要发送的目的url，method表示提交数据的方式，一般分POST和GET。
+			forloop.counter是DJango模板系统专门提供的一个变量，用来表示你当前循环的次数，一般用来给循环项目添加有序数标。
+			由于我们发送了一个POST请求，就必须考虑一个跨站请求伪造的安全问题，简称CSRF（具体含义请百度）。Django为你提供了一个简单的方法来避免这个困扰，那就是在form表单内添加一条{% csrf_token %}标签，标签名不可更改，固定格式，位置任意，只要是在form表单内。这个方法对form表单的提交方式方便好使，但如果是用ajax的方式提交数据，那么就不能用这个方法了。
+				    function jqAjaxBtn(){ // ajax 中使用此方法
+				        var params = {
+				            'csrfmiddlewaretoken':$('[name="csrfmiddlewaretoken"]').val()
+				        }
+				        $.post('/12-server/',params,function(data){
+				            // data表示的是响应回来的数据
+				            $('#show').html(data);
+				        });
+				    }
+
+			现在，让我们创建一个处理提交过来的数据的视图。前面我们已经写了一个“占坑”的vote视图的url（polls/urls.py）：
+
+			url(r'^(?P<question_id>[0-9]+)/vote/$', views.vote, name='vote'),
+			以及“占坑”的vote视图函数（polls/views.py），我们把坑填起来：
+
+			from django.shortcuts import get_object_or_404, render
+			from django.http import HttpResponseRedirect, HttpResponse
+			from django.urls import reverse
+			from .models import Choice, Question
+			# ...
+
+			def vote(request, question_id):
+			    question = get_object_or_404(Question, pk=question_id)
+			    try:
+			        selected_choice = question.choice_set.get(pk=request.POST['choice'])
+			    except (KeyError, Choice.DoesNotExist):
+			        # 发生choice未找到异常时，重新返回表单页面，并给出提示信息
+			        return render(request, 'polls/detail.html', {
+			        'question': question,
+			        'error_message': "You didn't select a choice.",
+			        })
+			    else:
+			        selected_choice.votes += 1
+			        selected_choice.save()
+			        # 成功处理数据后，自动跳转到结果页面，防止用户连续多次提交。
+			        return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
+			有些新的东西，我们要解释一下：
+
+			request.POST是一个类似字典的对象，允许你通过键名访问提交的数据。本例中，request.POST[’choice’]返回被选择选项的ID，并且值的类型永远是string字符串，那怕它看起来像数字！同样的，你也可以用类似的手段获取GET请求发送过来的数据，一个道理。
+			request.POST[’choice’]有可能触发一个KeyError异常，如果你的POST数据里没有提供choice键值，在这种情况下，上面的代码会返回表单页面并给出错误提示。PS：通常我们会给个默认值，防止这种异常的产生，例如request.POST[’choice’,None]，一个None解决所有问题。
+			在选择计数器加一后，返回的是一个HttpResponseRedirect而不是先前我们常用的HttpResponse。HttpResponseRedirect需要一个参数：重定向的URL。这里有一个建议，当你成功处理POST数据后，应当保持一个良好的习惯，始终返回一个HttpResponseRedirect。这不仅仅是对Django而言，它是一个良好的WEB开发习惯。
+			我们在上面HttpResponseRedirect的构造器中使用了一个reverse()函数。它能帮助我们避免在视图函数中硬编码URL。它首先需要一个我们在URLconf中指定的name，然后是传递的数据。例如'/polls/3/results/'，其中的3是某个question.id的值。重定向后将进入polls:results对应的视图，并将question.id传递给它。白话来讲，就是把活扔给另外一个路由对应的视图去干。
+			当有人对某个问题投票后，vote()视图重定向到了问卷的结果显示页面。下面我们来写这个处理结果页面的视图(polls/views.py)：
+
+			from django.shortcuts import get_object_or_404, render
+
+			def results(request, question_id):
+			    question = get_object_or_404(Question, pk=question_id)
+			    return render(request, 'polls/results.html', {'question': question})
+			同样，还需要写个模板polls/templates/polls/results.html。（路由、视图、模板、模型！都是这个套路....）
+
+			<h1>{{ question.question_text }}</h1>
+			<ul>
+			{% for choice in question.choice_set.all %}
+			    <li>{{ choice.choice_text }} -- {{ choice.votes }} vote{{ choice.votes|pluralize }}</li>
+			{% endfor %}
+			</ul>
+			<a href="{% url 'polls:detail' question.id %}">Vote again?</a>
+			现在你可以到浏览器中访问/polls/1/了，投票吧。你会看到一个结果页面，每投一次，它的内容就更新一次。如果你提交的时候没有选择项目，则会得到一个错误提示。
+
+			如果你在前面漏掉了一部分操作没做，比如没有创建choice选项对象，那么可以按下面的操作，补充一下：
+
+			F:\Django_course\mysite>python manage.py shell
+			Python 3.6.1 (v3.6.1:69c0db5, Mar 21 2017, 18:41:36) [MSC v.1900 64 bit (AMD64)] on win32
+			Type "help", "copyright", "credits" or "license" for more information.
+			(InteractiveConsole)
+			>>> from polls.models import Question
+			>>> q = Question.objects.get(pk=1)
+			>>> q.choice_set.create(choice_text='Not much', votes=0)
+			<Choice: Choice object>
+			>>> q.choice_set.create(choice_text='The sky', votes=0)
+			<Choice: Choice object>
+			>>> q.choice_set.create(choice_text='Just hacking again', votes=0)
+			<Choice: Choice object>
+			为了方便大家，我将当前状态下的各主要文件内容一并贴出，供大家对照参考！
+
+		1--完整的mysite/urls.py文件如下：
+
+			from django.conf.urls import url,include
+			from django.contrib import admin
+
+			urlpatterns = [
+			    url(r'^admin/', admin.site.urls),
+			    url(r'^polls/', include('polls.urls')),
+			]
+		2--完整的mysite/settings.py文件如下：
+
+			import os
+
+			# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+			BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+			# Quick-start development settings - unsuitable for production
+			# See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
+
+			# SECURITY WARNING: keep the secret key used in production secret!
+			SECRET_KEY = '85vvuta(p05ow!4pz2b0qbduu0%pq6x5q66-ei*pg+-lbdr#m^'
+
+			# SECURITY WARNING: don't run with debug turned on in production!
+			DEBUG = True
+
+			ALLOWED_HOSTS = []
+
+
+			# Application definition
+
+			INSTALLED_APPS = [
+			    'polls',
+			    'django.contrib.admin',
+			    'django.contrib.auth',
+			    'django.contrib.contenttypes',
+			    'django.contrib.sessions',
+			    'django.contrib.messages',
+			    'django.contrib.staticfiles',
+			]
+
+			MIDDLEWARE = [
+			    'django.middleware.security.SecurityMiddleware',
+			    'django.contrib.sessions.middleware.SessionMiddleware',
+			    'django.middleware.common.CommonMiddleware',
+			    'django.middleware.csrf.CsrfViewMiddleware',
+			    'django.contrib.auth.middleware.AuthenticationMiddleware',
+			    'django.contrib.messages.middleware.MessageMiddleware',
+			    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+			]
+
+			ROOT_URLCONF = 'mysite.urls'
+
+			TEMPLATES = [
+			    {
+			        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+			        'DIRS': [os.path.join(BASE_DIR, 'templates')]
+			        ,
+			        'APP_DIRS': True,
+			        'OPTIONS': {
+			            'context_processors': [
+			                'django.template.context_processors.debug',
+			                'django.template.context_processors.request',
+			                'django.contrib.auth.context_processors.auth',
+			                'django.contrib.messages.context_processors.messages',
+			            ],
+			        },
+			    },
+			]
+
+			WSGI_APPLICATION = 'mysite.wsgi.application'
+
+
+			# Database
+			# https://docs.djangoproject.com/en/1.11/ref/settings/#databases
+
+			DATABASES = {
+			    'default': {
+			        'ENGINE': 'django.db.backends.sqlite3',
+			        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+			    }
+			}
+
+
+			# Password validation
+			# https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
+
+			AUTH_PASSWORD_VALIDATORS = [
+			    {
+			        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+			    },
+			    {
+			        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+			    },
+			    {
+			        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+			    },
+			    {
+			        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+			    },
+			]
+
+
+			# Internationalization
+			# https://docs.djangoproject.com/en/1.11/topics/i18n/
+
+			LANGUAGE_CODE = 'en-us'
+
+			TIME_ZONE = 'Asia/Shanghai'
+
+			USE_I18N = True
+
+			USE_L10N = True
+
+			USE_TZ = True
+		3--完整的polls/views.py应该如下所示：
+
+			from django.shortcuts import reverse
+			from django.shortcuts import HttpResponseRedirect
+			from django.shortcuts import get_object_or_404
+			from django.shortcuts import HttpResponse
+			from django.shortcuts import render
+			from .models import Choice
+			from .models import Question
+			from django.template import loader
+			# Create your views here.
+
+
+			def index(request):
+			    latest_question_list = Question.objects.order_by('-pub_date')[:5]
+			    template = loader.get_template('polls/index.html')
+			    context = {
+			        'latest_question_list': latest_question_list,
+			    }
+			    return HttpResponse(template.render(context, request))
+
+
+			def detail(request, question_id):
+			    question = get_object_or_404(Question, pk=question_id)
+			    return render(request, 'polls/detail.html', {'question': question})
+
+
+			def results(request, question_id):
+			    question = get_object_or_404(Question, pk=question_id)
+			    return render(request, 'polls/results.html', {'question': question})
+
+
+			def vote(request, question_id):
+			    question = get_object_or_404(Question, pk=question_id)
+			    try:
+			        selected_choice = question.choice_set.get(pk=request.POST['choice'])
+			    except (KeyError, Choice.DoesNotExist):
+			        return render(request, 'polls/detail.html', {
+			            'question': question,
+			            'error_message': "You didn't select a choice.",
+			        })
+			    else:
+			        selected_choice.votes += 1
+			        selected_choice.save()
+			        return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
+		4--完整的polls/urls.py应该如下所示：
+
+			from django.conf.urls import url
+			from . import views
+
+			app_name = 'polls'
+
+			urlpatterns = [
+			    # ex: /polls/
+			    url(r'^$', views.index, name='index'),
+			    # ex: /polls/5/
+			    url(r'^(?P<question_id>[0-9]+)/$', views.detail, name='detail'),
+			    # ex: /polls/5/results/
+			    url(r'^(?P<question_id>[0-9]+)/results/$', views.results, name='results'),
+			    # ex: /polls/5/vote/
+			    url(r'^(?P<question_id>[0-9]+)/vote/$', views.vote, name='vote'),
+			]
+		5--完整的polls/model.py文件如下：
+
+			from django.db import models
+			import datetime
+			from django.utils import timezone
+			# Create your models here.
+
+			class Question(models.Model):
+			    question_text = models.CharField(max_length=200)
+			    pub_date = models.DateTimeField('date published')
+
+			    def was_published_recently(self):
+			        return self.pub_date >= timezone.now() - datetime.timedelta(days=1)
+
+			    def __str__(self):
+			        return self.question_text
+
+
+
+			class Choice(models.Model):
+			    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+			    choice_text = models.CharField(max_length=200)
+			    votes = models.IntegerField(default=0)
+
+			    def __str__(self):
+			        return self.choice_text
+		6--完整的polls/admin.py文件如下：
+
+			from django.contrib import admin
+
+			# Register your models here.
+
+			from .models import Question
+
+			admin.site.register(Question)
+		7--完整的templates/polls/index.html文件如下：
+
+			{% if latest_question_list %}
+			    <ul>
+			    {% for question in latest_question_list %}
+			        <li><a href="/polls/{{ question.id }}/">{{ question.question_text }}</a></li>
+			    {% endfor %}
+			    </ul>
+			{% else %}
+			    <p>No polls are available.</p>
+			{% endif %}
+		8--完整的templates/polls/detail.html文件如下：
+			<h1>{{ question.question_text }}</h1>
+			{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+			<form action="{% url 'polls:vote' question.id %}" method="post">
+			{% csrf_token %}
+			{% for choice in question.choice_set.all %}
+			    <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}" />
+			    <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br />
+			{% endfor %}
+			<input type="submit" value="Vote" />
+			</form>
+		9--完整的templates/polls/results.html文件如下：
+
+			<h1>{{ question.question_text }}</h1>
+			<ul>
+			{% for choice in question.choice_set.all %}
+			    <li>{{ choice.choice_text }} -- {{ choice.votes }} vote{{ choice.votes|pluralize }}</li>
+			{% endfor %}
+			</ul>
+			<a href="{% url 'polls:detail' question.id %}">Vote again?</a>
+			
+			vote()视图没有对应的html模板，它直接跳转到results视图去了。
+			运行服务器，测试各功能：
+			这是问卷列表页面：
+			这是“what's up”问卷选项页面：
+			这是选择结果页面：
+			这是没有选择选项时，提示错误信息的页面：
+			请大家对比参考上面的内容，看看你自己的结果是否一样。
+
+		二、 使用类视图：减少重复代码
+			上面的detail、index和results视图的代码非常相似，有点冗余，这是一个程序猿不能忍受的。他们都具有类似的业务逻辑，实现类似的功能：通过从URL传递过来的参数去数据库查询数据，加载一个模板，利用刚才的数据渲染模板，返回这个模板。由于这个过程是如此的常见，Django很善解人意的帮你想办法偷懒，于是它提供了一种快捷方式，名为“类视图”。
+
+			现在，让我们来试试看将原来的代码改为使用类视图的方式，整个过程分三步走：
+
+			修改URLconf设置
+			删除一些旧的无用的视图
+			采用基于类视图的新视图
+			PS：为什么本教程的代码来回改动这么频繁？
+
+			答：通常在写一个Django的app时，我们一开始就要决定使用类视图还是不用，而不是等到代码写到一半了才重构你的代码成类视图。但是本教程为了让你清晰的理解视图的内涵，“故意”走了一条比较曲折的路，因为我们的哲学是在你使用计算器之前你得先知道基本的数学公式。
+
+		1.改良URLconf 打开polls/urls.py文件，将其修改成下面的样子：
+
+			from django.conf.urls import url
+			from . import views
+
+			app_name = 'polls'
+			urlpatterns = [
+			    url(r'^$', views.IndexView.as_view(), name='index'),
+			    url(r'^(?P<pk>[0-9]+)/$', views.DetailView.as_view(), name='detail'),
+			    url(r'^(?P<pk>[0-9]+)/results/$', views.ResultsView.as_view(), name='results'),
+			    url(r'^(?P<question_id>[0-9]+)/vote/$', views.vote, name='vote'),
+			]
+			请注意：在上面的的第2,3条目中将原来的<question_id>修改成了<pk>.
+
+		2.修改视图 接下来，打开polls/views.py文件，删掉index、detail和results视图，替换成Django的类视图，如下所示：
+
+			from django.shortcuts import get_object_or_404, render
+			from django.http import HttpResponseRedirect
+			from django.urls import reverse
+			from django.views import generic
+			from .models import Choice, Question
+
+
+			class IndexView(generic.ListView):
+			    template_name = 'polls/index.html'
+			    context_object_name = 'latest_question_list'
+			    def get_queryset(self):
+			    """返回最近发布的5个问卷."""
+			        return Question.objects.order_by('-pub_date')[:5]
+
+
+			class DetailView(generic.DetailView):
+			    model = Question
+			    template_name = 'polls/detail.html'
+
+
+			class ResultsView(generic.DetailView):
+			    model = Question
+			    template_name ='polls/results.html'
+
+
+			def vote(request, question_id):
+			... # 这个视图未改变！！！
+			在这里，我们使用了两种类视图ListView和DetailView（它们是作为父类被继承的）。这两者分别代表“显示一个对象的列表”和“显示特定类型对象的详细页面”的抽象概念。
+			每一种类视图都需要知道它要作用在哪个模型上，这通过model属性提供。
+			DetailView类视图需要从url捕获到的称为"pk"的主键值，因此我们在url文件中将2和3条目的<question_id>修改成了<pk>。
+			默认情况下，DetailView类视图使用一个称作<app name>/<model name>_detail.html的模板。在本例中，实际使用的是polls/detail.html。template_name属性就是用来指定这个模板名的，用于代替自动生成的默认模板名。（一定要仔细观察上面的代码，对号入座，注意细节。）同样的，在resutls列表视图中，指定template_name为'polls/results.html'，这样就确保了虽然resulst视图和detail视图同样继承了DetailView类，使用了同样的model：Qeustion，但它们依然会显示不同的页面。（模板不同嘛！so easy！）
+			类似的，ListView类视图使用一个默认模板称为<app name>/<model name>_list.html。我们也使用template_name这个变量来告诉ListView使用我们已经存在的 "polls/index.html"模板，而不是使用它自己默认的那个。
+			在教程的前面部分，我们给模板提供了一个包含question和latest_question_list的上下文变量。而对于DetailView，question变量会被自动提供，因为我们使用了Django的模型（Question），Django会智能的选择合适的上下文变量。然而，对于ListView，自动生成的上下文变量是question_list。为了覆盖它，我们提供了context_object_name属性，指定说我们希望使用latest_question_list而不是question_list。
+			现在可以运行开发服务器，然后试试基于类视图的应用程序了。类视图是Django比较高级的一种用法，初学可能不太好理解，没关系，我们先有个印象。
+
+	Part 5：测试
+	Part 6：静态文件
+	Part 7：自定义admin站点
+第一章：模型层model layer
+	模型和字段
+	关系类型字段
+	字段的参数
+	多对多中间表详解
+	模型的元数据Meta
+	模型的继承
+	用包来组织模型
+	查询操作
+	查询集API
+	不返回QuerySets的API
+	字段查询参数及聚合函数
+第二章：视图层view layer
+	Django2.0 URL配置
+	URL路由基础
+	路由转发
+	URL反向解析和命名空间
+	视图函数及快捷方式
+	HttpRequest对象
+	QueryDict对象
+	HttpResponse对象
+	文件上传
+	动态生成CSV文件
+	动态生成PDF文件
+第三章：模版层Template layer
+	Django模板语言详解
+	Django内置模板标签
+	Django内置模版过滤器
+	特殊的标签和过滤器
+	人类可读性
+	自定义模板标签和过滤器
+第四章：Django表单
+	使用表单
+	Django表单API详解
+	Django表单字段汇总
+	表单的Widgets
+	模型表单ModelForm
+第五章：Admin管理后台
+	自定制Admin
+	自定义Admin actions
+	Admin文档生成器
+第六章：Django 综合篇
+	配置 Django
+	核心配置项
+	使用MySQL数据库
+	django-admin和manage.py
+	自定义django-admin命令
+	会话session
+	网站地图sitemap
+	信号 signal
+	序列化 serializers
+	消息框架 message
+	分页 Paginator
+	聚合内容 RSS/Atom
+	发送邮件
+	Django 日志
+	Django与缓存
+	认证系统 Authentication
+	Django与CSRF 、AJAX
+	Django 国际化和本地化
+	部署 Django
+实战一：用户登录与注册系统
+	1. 搭建项目环境
+	2. 设计数据模型
+	3. admin后台
+	4. url路由和视图
+	5. 前端页面设计
+	6. 登录视图
+	7. Django表单
+	8. 图片验证码
+	9. session会话
+	10. 注册视图
+	11.使用Django发送邮件
+	12. 邮件注册确认
+	13. 使用Github管理项目
+实战二：CMDB之资产管理系统
+	1.项目需求分析
+	2.模型设计
+	3.数据收集客户端
+	4.Windows下收集数据
+	5.Linux下收集数据
+	6.新资产待审批区
+	7.审批新资产
+	8.已上线资产信息更新
+	9.前端框架AdminLTE
+	10.资产总表
+	11.资产详细页面
+	12.dashboard仪表盘

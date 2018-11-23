@@ -1,0 +1,43 @@
+CentOS6.8安装并配置Redis
+http://jinbitou.net/2016/10/28/2110.html	
+1.下载源码并编译
+	#cd /tmp && wget http://download.redis.io/redis-stable.tar.gz
+	#tar zxvf  redis-stable.tar.gz && cd redis-stable && make
+2.为了能在任何路径下都能执行redis相关命令，我们需要copy以下两个文件到/usr/local/bin目录
+	#cp src/redis-server /usr/local/bin/
+	#cp src/redis-cli /usr/local/bin/
+3.创建文件夹分别保存Redis的配置文件和数据
+	#mkdir /etc/redis
+	#mkdir /var/redis
+4.将Redis初始化文件copy进/etc/init.d，并重命名为redis_6379
+	#cp utils/redis_init_script /etc/init.d/redis_6379
+5.查看文件redis_6379的内容
+	# cat /etc/init.d/redis_6379
+	CentOS6.8安装并配置Redis
+6.copy配置文件模板到上图中指定的路径并重命名为6379.conf
+	# cp redis.conf /etc/redis/6379.conf
+7.在第3步新建的/var/redis路径下新建目录6379作为当前Redis实例的工作目录和数据存放目录
+	#mkdir /var/redis/6379
+8.编辑配置文件
+	# vi /etc/redis/6379.conf
+
+	port 6379   #Redis默认监听端口
+	daemonize yes   #是否作为守护进程运行，默认为no
+	pidfile /var/run/redis_6379.pid   #如以后台进程运行，则需指定一个pid文件位置
+	loglevel notice   #日志记录等级，有4个可选值，debug，verbose（默认值），notice，warning
+	logfile /var/log/redis_6379.log   #指定日志输出文件名，可设为/dev/null屏蔽日志
+	dir /var/redis/6379   #本地数据库存放路径和工作目录(非常重要！！！)
+	bind 127.0.0.1   #绑定主机IP，默认值为127.0.0.1
+9.添加开机自启动。开机启动要配置在 rc.local 中，而 /etc/profile 文件，要有用户登录了，才会被执行。
+	#echo "/etc/init.d/redis_6379 start &" >> /etc/rc.local
+10.启动Redis并测试
+	[root@WYS ~]# /etc/init.d/redis_6379 start
+	Starting Redis server…
+	[root@WYS ~]# redis-cli
+	127.0.0.1:6379> set test jinbitou.net
+	OK
+	127.0.0.1:6379> get test
+	“jinbitou.net”
+	127.0.0.1:6379>
+11.安装完毕!
+	金笔头博客, 版权所有丨如未注明 , 均为

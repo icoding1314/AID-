@@ -1,0 +1,180 @@
+1.自定义查询对象
+	1.声明类 继承自 models.Manager
+		定义自定义函数
+	2.为实体类覆盖 objects
+		class Entry(models.Model):
+			objects = EntryManager()
+2.HttpRequest
+	1.判断请求方式
+		request.method
+	2.获取请求提交的数据
+		1.get
+			request.GET['name']
+		2.post
+			request.POST['name']
+	3.获取请求消息头
+		request.META
+		request.META.HTTP_REFERER
+	4.提交post请求
+		Django对post请求需要进行一个 csrf 验证
+		解决方案：
+			1.增加 {% csrf_token %} 标签
+			2.删除 csrf 相关的中间件
+			3.将 @csrf_protect 添加到视图处理函数上
+3.使用 forms 模块
+	1.使用 forms 模块
+		1.创建 forms.py
+		2.导入 forms 模块
+			from django import forms
+		3.创建 class,一个class对应着一个表单
+			class ClassName(forms.Form):
+				属性 ：每一个属性会生成一个表单控件
+				
+				forms.CharField()
+				forms.EmailField()
+				forms.IntegerField()
+				... ...
+	2.在模板中 解析 form 对象
+		0.注意
+			1.创建表单 - <form></form>
+			2.自定义按钮
+		1.手动解析
+			form = XXXForm()
+			return render(request,'xxx.html',locals())
+
+			xxx.html : 
+				{% for field in form %}
+					{{field}} : 表示的是一个控件
+					{{field.label}} : 表示的是label参数值
+				{% endfor %}
+		2.自动解析
+			{{form.as_p}}
+			{{form.as_ul}}
+			{{form.as_table}}
+	3.视图中通过 forms.Form 接收表单数据
+		1.通过 forms.Form的构造器接收数据
+			form = XXXForm(request.POST)
+		2.需要让 form 通过验证后 ，再取值
+			form.is_valid()
+				True:通过所有验证
+				False:未通过验证
+		3.获取表单数据
+			form.cleaned_data
+
+=====================================================
+1.forms模块
+	1.forms模块的高级处理
+		将 Models 和 Forms 结合到一起使用
+		1.在 forms.py 中创建 class，继承自 forms.ModelForm
+		2.创建内部类 Meta ， 去关联 Model
+			1.model : 指定要关联的实体类
+			2.fields : 指定从Model中取哪些字段生成控件
+				1.取值 "__all__",表示全部属性都要生成控件
+				2.取值 列表，声明允许生成控件的属性名
+			3.labels : 指定每个属性所关联的label，取值为字典
+				labels = {
+					'属性名':'label文本',
+					'属性名':'label文本',
+				}
+	2.内置小部件
+		1.什么是小部件
+			小部件(widget)，表示的是生成到页面上的控件的类型以及其他的html属性
+		2.常用小部件类型
+			1.TextInput : type="text"
+			2.PasswordInput : type="password"
+			3.NumberInput : type="number"
+			4.EmailInput : type="email"
+			5.URLInput : type="url"
+			6.HiddenInput : type="hidden"
+			7.CheckboxInput : type="checkbox"
+			8.Textarea : <textarea></textarea>
+			9.Select : <select></select>
+		3.小部件的使用
+			1.继承自 forms.Form
+				1.基本版
+					只指定控件的类型
+					class RemarkForm(forms.Form):
+						属性 = forms.CharField(
+							label='文本',
+							widget=forms.小部件类型
+						)
+				2.高级版
+					指定控件类型的基础上还允许设置html的一些相关属性
+
+					属性 = forms.CharField(
+						label='文本',
+						widget=forms.小部件类型(
+							attrs = {
+								'html属性名':'属性值',
+								'html属性名':'属性值',
+							}
+						)
+					)
+			2.继承自 forms.ModelForm
+				class XXXForm(forms.ModelForm):
+					class Meta:
+						model = User
+						fields = "__all__"
+						labels = {
+							'属性1':'Label1',
+						}
+						widgets = {
+							'属性1':forms.小部件类型(attrs={})
+						}
+2.cookies 在 Django 中的实现
+	1.django 中使用 cookies
+		1.设置cookies的值
+			语法：
+				响应对象.set_cookie(key,value,expires)
+					key:cookie的名字
+					value:cookie的值
+					expires:保存时间，以s为单位
+				ex:
+					响应对象.set_cookie('uname','tom',60*60*24*365)
+			响应对象:
+				1.HttpResponse
+					resp = HttpResponse("给客户端的一句话")
+					resp.set_cookie('key','value',expires)
+					return resp
+				2.render()
+					resp = render(request,'xxx.html',locals())
+					resp.set_cookie('key','value',expires)
+					return resp
+				3.HttpResponseRedirect / redirect
+					resp = redirect('/地址/')
+					resp.set_cookie('key','value',expires)
+					return resp
+		2.获取cookies的值
+			通过 request.COOKIES 获取当前站点下所有的cookies的信息
+			request.COOKIES:{'username': 'Wang Wc'}
+3.session 在 Django 中的实现
+	1.设置 session 的值
+		request.session['key'] = value
+	2.获取 session 的值 
+		value = request.session[key]
+		value = request.session.get('key')
+	3.删除 session 的值
+		del request.session['key']
+
+	4.在 settings.py中，设置session的相关设置
+		1.SESSION_COOKIE_AGE
+			作用：设置 sessionID在cookies中的保存时间
+			ex:
+				SESSION_COOKIE_AGE = 60*60*24
+		2.SESSION_EXPIRE_AT_BROWSER_CLOSE
+			作用：设置关闭浏览器时则清空服务器上对应的session空间
+			ex:
+				SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+
+
+
+
+
+
+
+
+
+
+
+

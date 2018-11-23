@@ -1,0 +1,127 @@
+Scrapy学习笔记(3)-循环爬取以及数据库操作
+http://jinbitou.net/2016/11/15/2165.html
+前言
+    系统环境：CentOS7
+    本文假设你已经安装了virtualenv，并且已经激活虚拟环境ENV1，如果没有，请参考这里：使用virtualenv创建python沙盒（虚拟）环境，在上一篇文章(Scrapy学习笔记(2)-使用pycharm在虚拟环境中运行第一个spider)中我们已经能够使用scrapy的命令行工具创建项目以及spider、使用Pycharm编码并在虚拟环境中运行spider抓取http://quotes.toscrape.com/中的article和author信息, 最后将抓取的信息存入txt文件，上次的spider只能单页爬取，今天我们在上次的spider上再深入一下。
+目标
+    跟踪next（下一页）链接循环爬取http://quotes.toscrape.com/中的article和author信息,将结果保存到mysql数据库中。
+正文
+    1.因为要用Python操作MySQL数据库，所以先得安装相关的Python模块，本文使用MySQLdb
+        #sudo yum install mysql-devel
+        #pip install mysql-devel
+    2.在数据库中创建目标表quotes，建表语句如下：
+        CREATE TABLE `quotes` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `article` varchar(500) DEFAULT NULL,
+          `author` varchar(50) DEFAULT NULL,
+          PRIMARY KEY (`id`)
+        ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+    3.items.py文件详细代码如下：
+        # -*- coding: utf-8 -*-
+
+        # Define here the models for your scraped items
+        #
+        # See documentation in:
+        # http://doc.scrapy.org/en/latest/topics/items.html
+
+        import scrapy
+
+
+        class QuotesItem(scrapy.Item):
+            # define the fields for your item here like:
+            # name = scrapy.Field()
+            article=scrapy.Field()
+            author=scrapy.Field()
+            pass
+    4.修改quotes_spider.py如下：
+        # -*- coding: utf-8 -*-
+        import scrapy
+        from ..items import QuotesItem
+        from urlparse import urljoin
+        from scrapy.http import Request
+        class QuotesSpiderSpider(scrapy.Spider):
+            name = "quotes_spider"
+            allowed_domains = ["quotes.toscrape.com"]
+            start_urls = ['http://quotes.toscrape.com']
+
+            def parse(self, response):
+                articles=response.xpath("//div[@class='quote']")
+                next_page=response.xpath("//li[@class='next']/a/@href").extract_first()
+                for article in articles:
+                    item=QuotesItem()
+                    content=article.xpath("span[@class='text']/text()").extract_first()
+                    author=article.xpath("span/small[@class='author']/text()").extract_first()
+                    item['article']=content.encode('utf-8')
+                    item['author'] = author.encode('utf-8')
+                    yield item#使用yield返回结果但不会中断程序执行
+                if next_page:#判断是否存在next链接
+                    url=urljoin(self.start_urls[0],next_page)#拼接url
+                    yield Request(url,callback=self.parse)
+    5.修改pipelines.py文件，将爬取到的数据保存到数据库
+        # -*- coding: utf-8 -*-
+
+        # Define your item pipelines here
+        #
+        # Don't forget to add your pipeline to the ITEM_PIPELINES setting
+        # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
+
+        from twisted.enterprise import adbapi
+        import MySQLdb
+        import MySQLdb.cursors
+
+        class QuotesPipeline(object):
+            def __init__(self):
+                db_args=dict(
+                    host="192.168.0.107",#数据库主机ip
+                    db="scrapy",#数据库名称
+                    user="root",#用户名
+                    passwd="123456",#密码
+                    charset='utf8',#数据库字符编码
+                    cursorclass = MySQLdb.cursors.DictCursor,#以字典的形式返回数据集
+                    use_unicode = True,
+                )
+                self.dbpool = adbapi.ConnectionPool('MySQLdb', **db_args)
+
+            def process_item(self, item, spider):
+                self.dbpool.runInteraction(self.insert_into_quotes, item)
+                return item
+
+            def insert_into_quotes(self,conn,item):
+
+                conn.execute(
+                    '''
+                    INSERT INTO quotes(article,author)
+                    VALUES(%s,%s)
+                    '''
+                    ,(item['article'],item['author'])
+                )
+    6.pipeline.py文件代码不变：
+        # -*- coding: utf-8 -*-
+
+        # Scrapy settings for quotes project
+        #
+        # For simplicity, this file contains only settings considered important or
+        # commonly used. You can find more settings consulting the documentation:
+        #
+        #     http://doc.scrapy.org/en/latest/topics/settings.html
+        #     http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
+        #     http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
+
+        BOT_NAME = 'quotes'
+
+        SPIDER_MODULES = ['quotes.spiders']
+        NEWSPIDER_MODULE = 'quotes.spiders'
+
+
+        # Obey robots.txt rules
+        ROBOTSTXT_OBEY = True
+
+        # Configure item pipelines
+        # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
+        ITEM_PIPELINES = {
+           'quotes.pipelines.QuotesPipeline': 300,
+        }
+    7.开始运行spider
+        (ENV1) [eason@localhost quotes]$ scrapy crawl quotes_spider
+     
+    8.检验结果，Done!

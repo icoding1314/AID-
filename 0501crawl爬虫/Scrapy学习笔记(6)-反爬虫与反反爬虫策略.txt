@@ -1,0 +1,142 @@
+Scrapy学习笔记(6)-反爬虫与反反爬虫策略
+http://jinbitou.net/2016/12/01/2229.html
+前言
+    到目前为止我们已经写了好几个爬虫，虽然已经可以实现数据采集，但是我们的爬虫其实是在”裸奔”，因为没有加任何的伪装，很容易就可以被远程服务器识别出来，这也就意味着我们的爬虫很可能在采集了十几页数据或者运行几分钟之后就出现问题，轻则出现验证码或暂时访问不了目标站点，重则本机IP直接被拉入黑名单。你可能会说无图无真相，好吧，上图！
+链家爬虫：
+    看吧，丝毫不留情面，我们的爬虫已经没法工作了，不过办法总比困难多，只要你去想，所以本文稍微讲一下防ban策略。
+常见反爬虫策略
+    知己知彼，百战不殆。我们想防止爬虫被 ban就得了解一些常见的反爬虫措施。但要反爬虫还得先识别爬虫，所以首先讲讲如何识别爬虫。
+    方法1：http日志和流量分析，如果单位时间内某个IP访问频率和流量超过特定阈值就可以界定为爬虫。
+    方法2：Headers参数检测
+        上图是浏览器正常访问站点时发送的数据包，可以看到Request Headers里面有一堆参数，目标站点可以检测User-Agent或者Referer参数的值来判断是否为爬虫，顺便提一下Referer参数也可以防盗链。
+    方法3：在网页源码内放置一个对浏览器不可见的链接，正常用户使用浏览器是看不到该链接的当然也不会去点击，如果检测到该链接被点击，来访IP就会被界定为爬虫。
+    
+讲完了爬虫识别方法，下面开始讲反爬虫策略
+    1.临时或永久封禁来访ip
+    2.返回验证码
+    3.异步加载(ajax)
+    4.爬虫陷阱
+常见反反爬虫策略
+    针对反爬策略1可以使用高匿代理IP解决；针对反爬策略2，如果不是每次都弹验证码也可以使用高匿代理IP解决，如果感觉高匿代理不稳定或者收集起来不方便使用Tor网络(不懂Tor？动动你的手指百度吧^_^)也可以，如果每次都弹验证码那就得涉及到验证码识别了，简单的验证码可以自己写代码处理，python有不少知名的图像处理(识别)库（如PIL/Pillow、Mahotas、Pymorph、pytesser、tesseract-ocr、openCV等）和算法（比如大名鼎鼎的KNN[K邻近算法]和SVM[支持向量机]），但复杂的验证码例如涉及逻辑判断和计算、字符粘连变形、前置噪音多色干扰、多语种字符混搭的大多也只能靠接入人工打码平台来对抗了；针对反爬策略3，由于采用异步加载方式，网页内容不会一次性全部展示出来，需要将滚动条滑到最底部才能继续浏览下一页内容，此时可以使用selenium+phantomjs解决，phantomjs是一个无头无界面浏览器，使用selenium可以驱动它模拟浏览器的一切操作，但缺点也很明显，爬取效率低；针对反爬策略4，看情况而定吧，如果是比较简单的死循环陷阱，可以对爬虫将要爬取的链接进行判断，不重复爬取相同的页面，scrapy的LinkExtractor设定unique参数为True即可或者直接设定爬虫的最大循环次数。高级的陷阱笔者还没遇到，暂不讨论。此外增加爬取间隔和禁用cookie也能降低爬虫被ban的概率。
+实践
+    上面说了那么多，实践才是硬道理，以突破IP84反爬策略为例，主要代码参考Scrapy学习笔记(5)-CrawlSpider+sqlalchemy实战，下面只贴出需要修改部分的代码。
+1.在settings.py同级目录下新建文件useragent.py
+    # -*-coding:utf-8-*-
+    from scrapy import log
+    import logging
+    '''
+    #避免被ban策略之一：使用useragent池。
+    使用注意：需在settings.py中进行相应的设置。
+    '''
+    import random
+    from scrapy.downloadermiddlewares.useragent import UserAgentMiddleware
+    class UserAgent(UserAgentMiddleware):
+
+        def __init__(self, user_agent=''):
+            self.user_agent = user_agent
+
+        def process_request(self, request, spider):
+            ua = random.choice(self.user_agent_list)
+            if ua:
+                #显示当前使用的useragent
+                #print "********Current UserAgent:%s************" %ua
+                #记录
+                log.msg('Current UserAgent: '+ua, level=logging.DEBUG)
+                request.headers.setdefault('User-Agent', ua)
+
+        #the default user_agent_list composes chrome,I E,firefox,Mozilla,opera,netscape
+        #for more user agent strings,you can find it in http://www.useragentstring.com/pages/useragentstring.php
+        user_agent_list = [\
+            "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 "
+            "(KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1",
+            "Mozilla/5.0 (X11; CrOS i686 2268.111.0) AppleWebKit/536.11 "
+            "(KHTML, like Gecko) Chrome/20.0.1132.57 Safari/536.11",
+            "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.6 "
+            "(KHTML, like Gecko) Chrome/20.0.1092.0 Safari/536.6",
+            "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/536.6 "
+            "(KHTML, like Gecko) Chrome/20.0.1090.0 Safari/536.6",
+            "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.1 "
+            "(KHTML, like Gecko) Chrome/19.77.34.5 Safari/537.1",
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/536.5 "
+            "(KHTML, like Gecko) Chrome/19.0.1084.9 Safari/536.5",
+            "Mozilla/5.0 (Windows NT 6.0) AppleWebKit/536.5 "
+            "(KHTML, like Gecko) Chrome/19.0.1084.36 Safari/536.5",
+            "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.3 "
+            "(KHTML, like Gecko) Chrome/19.0.1063.0 Safari/536.3",
+            "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/536.3 "
+            "(KHTML, like Gecko) Chrome/19.0.1063.0 Safari/536.3",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_0) AppleWebKit/536.3 "
+            "(KHTML, like Gecko) Chrome/19.0.1063.0 Safari/536.3",
+            "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/536.3 "
+            "(KHTML, like Gecko) Chrome/19.0.1062.0 Safari/536.3",
+            "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.3 "
+            "(KHTML, like Gecko) Chrome/19.0.1062.0 Safari/536.3",
+            "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/536.3 "
+            "(KHTML, like Gecko) Chrome/19.0.1061.1 Safari/536.3",
+            "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.3 "
+            "(KHTML, like Gecko) Chrome/19.0.1061.1 Safari/536.3",
+            "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/536.3 "
+            "(KHTML, like Gecko) Chrome/19.0.1061.1 Safari/536.3",
+            "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/536.3 "
+            "(KHTML, like Gecko) Chrome/19.0.1061.0 Safari/536.3",
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.24 "
+            "(KHTML, like Gecko) Chrome/19.0.1055.1 Safari/535.24",
+            "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/535.24 "
+            "(KHTML, like Gecko) Chrome/19.0.1055.1 Safari/535.24"
+           ]
+2.在settings.py同级目录新建文件proxymiddlewares.py
+    # -*- coding: utf-8 -*-
+    import random, base64
+
+
+    class ProxyMiddleware(object):
+        #代理IP列表
+        proxyList = [ \
+            '114.231.158.79:8088',
+            '123.233.153.151:8118'
+            ]
+
+        def process_request(self, request, spider):
+            # Set the location of the proxy
+            pro_adr = random.choice(self.proxyList)
+            print "USE PROXY -> " + pro_adr
+            request.meta['proxy'] = "http://" + pro_adr
+3.修改settings.py
+    # -*- coding: utf-8 -*-
+
+    BOT_NAME = 'ip_proxy_pool'
+
+    SPIDER_MODULES = ['ip_proxy_pool.spiders']
+    NEWSPIDER_MODULE = 'ip_proxy_pool.spiders'
+
+    # Obey robots.txt rules
+    ROBOTSTXT_OBEY = False
+
+    ITEM_PIPELINES = {
+       'ip_proxy_pool.pipelines.IpProxyPoolPipeline': 300,
+    }
+
+    #爬取间隔
+    DOWNLOAD_DELAY = 1
+
+    # 禁用cookie
+    COOKIES_ENABLED = False
+
+
+    # 重写默认请求头
+    DEFAULT_REQUEST_HEADERS = {
+      'Accept': 'text/html, application/xhtml+xml, application/xml',
+      'Accept-Language': 'zh-CN,zh;q=0.8',
+      'Host':'ip84.com',
+      'Referer':'http://ip84.com/',
+      'X-XHR-Referer':'http://ip84.com/'
+    }
+
+    #激活自定义UserAgent和代理IP
+    # See http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
+    DOWNLOADER_MIDDLEWARES = {
+       'ip_proxy_pool.useragent.UserAgent': 1,
+       'ip_proxy_pool.proxymiddlewares.ProxyMiddleware':100,
+       'scrapy.downloadermiddleware.useragent.UserAgentMiddleware' : None,
+    }
+4.开始爬取，发现已经能正常运行了。

@@ -1,0 +1,288 @@
+1.搭建结构
+	from flask imort Flask
+	
+	app = Flask(__name__)
+
+	@app.route('/路径')
+	def fun():
+		return ""
+
+	if __name__ == "__main__":
+		app.run(debug=True,port=5555)
+2.路由
+	@app.route() 来表示路由
+
+	@app.route('/') : 访问路径 /
+	def ...
+	@app.route('/index') : 访问路径 /index
+	def ....
+	@app.route('/user/info') : 访问路径 /user/info
+	def ...
+	@app.route('/user/<name>') : 访问路径 /user/xxx
+	def user(name):
+		# name 是一个字符串
+		return ''
+	@app.route('/user/<int:age>') : 访问路径 /user/xxx
+	def user(age):
+		# age 是一个整数
+		return ''
+	类型转换器：
+		默认 ：字符串，不允许有 /
+		int :
+		float : 
+		path : 字符串 ，允许有 /
+
+	@app.route('/')
+	@app.route('/index')
+	@app.route('/<int:page>')
+	@app.route('/index/<int:page>')
+	def index(page=None):
+		return ''
+
+	路由的反向解析：
+		url_for(funName,arg1=value1,arg2=value2)
+			funName : 要反向生成地址的函数名
+			arg1 ~ n : 传递给url的参数名和值
+3.Tempates - 模板
+	1.模板设置
+		需要在 flask 程序文件夹中创建一个 templates 的子目录
+	2.渲染模板
+		render_template() : 将模板渲染成字符串再响应
+		语法：
+			render_template('xxx.html',arg1=value1,arg2=value2)
+				xxx.html : 要渲染的 文件
+				arg1 ~ n : 要传递给模板的变量占位符
+				返回值：字符串
+1.模板的语法
+	1.变量
+		在视图中：
+			return render_template('xx.html',变量1=值1,变量2=值2)
+			return render_template('xx.html',params=locals())
+			
+			允许传递到模板中变量的数据类型：
+				数字，字符串，字典，列表，元组，对象
+		在模板中：
+			{{变量}}
+			{{uname}}
+			{{list[1]}} 或 {{list.1}}
+			{{person.show()}}
+	2.过滤器
+		在变量输出之前改变变量的值
+		{{变量|过滤器}}
+		过滤器：
+			lower
+			upper
+			capitalize
+			trip
+	3.控制结构
+		1.if 结构
+			{% if 条件 %}
+				满足条件要执行的代码块(html/变量/过滤器)
+			{% endif %}
+
+			{% if 条件 %}
+			{% else %}
+			{% endif %}
+		2.for 结构
+			{% for 变量 in 列表，元组，字典%}
+
+			{% endfor %}
+		3.宏
+			声明：
+			{% macro 函数名() %}
+				函数体(html/结构/变量/过滤器)
+			{% endmacro %}
+			调用：
+			{{ 函数名() }}
+
+			允许将宏声明在独立的网页中：
+			1.创建网页 - macro.html
+				{% macro 函数名() %}
+					函数体(html/结构/变量/过滤器)
+				{% endmacro %}
+			2.在网页中导入macro.html
+				{% import 'macro.html' as macros %}
+
+				{{macros.函数名()}}
+		4.模板的包含
+			{% include 'xxx.html' %}
+	4.静态文件
+		1.在项目目录中创建 static 目录用于保存静态文件
+		2.在模板中使用静态文件
+			/static/...
+
+			<img src="/static/img/xxx.jpg">
+			<img src="{{url_for('static',filename='img/a.jpg') }}">
+	5.继承
+		1.父模板中
+			{% block 块名 %}
+			{% endblock %}
+
+			block 作用：定义在子模板中允许被修改的内容部分
+				1.在父模板中是被正常显示的
+				2.在子模板中可以被重写			
+		2.子模板中
+			1.使用 {% extends '父模板名称' %} 实现继承
+			2.使用 {% block 块名 %}..{% endblock %}
+				覆盖父模板中的同名内容
+			3.使用 {{super()}} 调用父模板中的内容
+
+1.请求对象 - request
+	from flask import request
+
+	属性
+		1.request.method
+		2.request.args
+		3.request.form
+		4.request.cookies
+		5.request.headers
+			request.headers.get('referer')
+	1.获取 get 请求数据
+		使用超链接发送get请求，拼地址栏参数
+		<a href="/request?name=zsf&age=85">xxx</a>
+
+		name=request.args.get('name')
+		age =request.args.get('age')
+		使用js中的location对象，发送get请求并拼接参数
+		<script>
+			$btn.click(function(){
+				location.href='xxxxx?arg1=value1&arg2=value2'
+			});
+		</script>
+	2.获取 post 请求数据
+		request.form.get('xxx')
+		request.form.getlist('name_list')
+2.响应对象
+	除了可以响应字符串和模板之外，还可以是响应对象或重定向
+	1.响应对象 - make_response()
+		from flask import make_response
+
+		resp = make_response('xxxx')
+		return resp
+
+		resp = make_response(render_template('xx.html',params=locals()))
+		return resp
+	2.重定向
+		由服务器通知浏览器向新的地址发送一个请求
+		from flask import redirect
+
+		resp = redirect('重定向地址')
+		return resp
+3.文件上传
+	1.前端页面
+		1.form中的method的值必须为 post
+		2.form中的enctype的值必须为 multipart/form-data
+
+		大量数据上传的时候（如：超大文件），就不能使用网页上传了（主要是由于http协议不支持），需要使用单独的上传工具（C/S版的）
+	2.服务器端
+		使用 request.files 接收上传的文件
+		f = request.files['文件选择框名称']
+		f.save('static/'+f.filename)
+
+
+
+
+os.path.dirname(__file__)
+os.path.join(目录1,目录2,目录n)
+
+1.模型
+	使用名为SQLAlchemy的ORM框架，并且需要 Flask-SQLAlchemy
+
+	配置
+		from flask_sqlalchmey import SQLAlchemy
+
+		app.config['SQLALCHEMY_DATABASE_URI']="mysql://username:password@host:port/dbname"
+		app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
+
+		db = SQLAlchemy(app)
+
+	1.定义模型
+		class MODELNAME(db.Model)
+			__tablename__ = "TABLENAME"
+
+			COLUMN_NAME = db.Column(db.TYPE,OPTIONS)
+			... ...
+1.SQLAlchemy - 查询
+	1.基于 db.session
+		1.db.session.query()
+			参数：实体，多个实体，实体中的属性
+			返回值：BaseQuery()
+
+			1.查询执行函数
+				1.all()
+				2.first()
+				3.first_or_404()
+				4.count()
+			2.查询过滤器
+				1.filter()
+				2.filter_by()
+				3.limit()
+					limit().offset()
+				4.order_by()
+				5.group_by()
+	2.基于 Models 
+		Models.query.查询过滤器().查询执行函数()
+2.SQLAlchemy - 删除、修改
+	删除 ：db.session.delete(model)
+		model : 要删除的实体对象
+	修改 ：
+		1.查 2.改 3.保存
+3.关系映射
+	Teacher ：id,tname,tage (多)
+	Course : id,cname (一)
+
+	一名老师只能教一门课
+	一门课可以由多个老师来教
+
+	数据库中的实现：
+		在"多"表中增加外键引用自"一"表中主键
+	
+	class Course(db.Model):
+		__tablename__ = 'course'
+		id = db.Column()
+		...
+		# Teacher类中会存在一个隐式属性 ：course
+		teachers = db.relationship('Teacher',backref='course',lazy='dynamic')
+
+	class Teacher(db.Model):
+		__tablename__ = 'teacher'
+		id = db.Column()
+		tname = db.Column()
+		..
+		course_id = db.Column(db.Integer,db.ForeignKey('course.id'))
+
+1.关系映射
+	1.一对多
+		在"多"表(实体类)中实现：
+			实现外键关联
+			外键属性=db.Column(db.TYPE,db.ForeignKey('主表.主键'))
+		在"一"表(实体类)中实现：
+			实现关联属性 以及 反向引用
+			属性名 = db.relationship('关联的实体类',backref='属性名',lazy='dynamic')
+	2.一对一
+		在任何一个表(实体)中实现：
+			实现外键关联
+			外键属性=db.Column(db.TYPE,db.ForeignKey('主表.主键'))
+		在另一个表(实体)中实现：
+			实现关联属性 以及 反向引用
+			属性名 = db.relationship('关联的实体类',backref='属性名',uselist=False)
+	3.多对多
+		创建关联表
+			对象名 = db.Table(
+				'关联表名',
+				db.Column('id',db.Integer,primary_key=True),
+				db.Column('外键列名1',db.TYPE,db.ForeignKey('主表1.主键')),
+				db.Column('外键列名2',db.TYPE,db.ForeignKey('主表2.主键'))
+			)
+		在任何一个实体中实现：
+			实现关联属性 以及 反向引用
+
+			关联属性名=db.relationship(
+				'关联的实体类名',
+				secondary='关联的第三张表表名',
+				lazy='dynamic',
+				backref=db.backref(
+					'反向引用属性名',
+					lazy='dynamic'
+				)
+			)

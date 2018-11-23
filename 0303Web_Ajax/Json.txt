@@ -1,0 +1,50 @@
+2.JSON
+	1.JSON介绍
+		JSON:JavaScript Object Notation
+					JS        对象   表现形式
+
+		在ajax中，允许将 复杂格式的响应数据 构建成 JSON的格式再进行响应输出
+	2.JSON表现
+		1.JSON表示单个对象
+			1.使用 {} 表示单个对象
+			2.在 {} 中使用 key:value 的形式来表示属性(数据)
+			3.Key必须要用 " " 引起来
+			4.value如果是字符串的话，也需要用" "引起来
+
+			ex:
+				var obj = {
+					"name":"王老师",
+					"age" : 30,
+					"gender" : "Unknown"
+				}
+		2.JSON表示一个数组
+			1.使用 [] 表示一个数组
+			2.数组中允许包含若干JSON对象 或 字符串
+				1.使用JSON数组表示若干字符串
+					var arr = ["王伟超","王夫人","王小超"];
+				2.使用JSON数组表示若干对象
+					保存 3个人的信息(name,age,gender)
+					var arr = [
+						{
+							"name":"王老师",
+							"age":30,
+							"gender":"男"
+						},
+						{
+							"name":"王夫人",
+							"age":28,
+							"gender":"男"
+						}
+					];
+	3.使用 jq 的 each() 迭代数组
+		1. $arr.each();
+			$arr : jQuery中的数组
+			语法：
+				$arr.each(function(index,obj){
+					index:遍历出来的元素的下标
+					obj:遍历出来的元素
+				});
+		2.$.each();
+			语法：
+				$.each(arr,function(index,obj){});
+					arr : js 中的普通数组

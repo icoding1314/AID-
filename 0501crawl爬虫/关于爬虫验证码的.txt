@@ -1,0 +1,24 @@
+验证码的识别 :tesserocr简单介绍以及如何 win10下如何安装tesserocr
+https://blog.csdn.net/weixin_41931602/article/details/82721088
+
+2018年09月16日 10:25:39 腾阳 阅读数：89
+
+0.前言：
+	现在越来越多的网站都会使用一些措施来反爬虫了，其中一个很常见的就是使用验证码。
+
+	验证码的种类很多，大体分成普通图形验证码，极验滑动验证码，点触验证码，微博宫格验证码等等。今天要解决的是第一种。
+1.tesserocr -  （tesseract为核心）
+	tesserocr是python的一个OCR识别库，但实际上是对tesseract做一个一层的python API封装，因此核心是tesseract。
+
+	我使用的是python3.6版本，win10系统。
+2.安装：
+	1.首先安装tesseract，进入网址https://digi.bib.uni-mannheim.de/tesseract/。
+	在上图可以看到许多文件，带有Dev的是开发版本，不带Dev的表示的是稳定版本，在此我选择的是不带Dev的3.0版本 ： tesseract-ocr-setup-3.05.02-20180621.exe,下载完之后双击安装。
+	2.一直点击next，会弹出以下页面，然后勾选Addition language data，这样的话，OCR就能识别很多种语言了，然后再点击next。
+	3. 然后在cmd下安装tesserocr。
+		1.下载：https://github.com/simonflueckiger/tesserocr-windows_build/releases/tag/tesserocr-v2.2.2-tesseract-4.0.0-master
+		2.然后在命令行窗口跳转到下载好的文件路径下，
+			cd C:\Python36\Scripts
+		3.再输入相关pip install wenjian_name,如
+			pip install tesserocr-2.2.2-cp36-cp36m-win32.whl
+		### 注意：如果版本不对，就会报错

@@ -1,0 +1,114 @@
+Scrapy学习笔记(9)-使用scrapy-deltafetch实现增量爬取
+http://jinbitou.net/2018/01/27/2581.html
+前言
+    在之前的文章中我们都是对目标站点进行全量爬取，只要爬虫run起来就会对所有的链接都爬取一遍，这其实是很傻的做法，因为很多情况下我们并不需要爬取已经爬过的链接，除非你需要定期更新这个链接对应页面上的数据。好了，回归正题，本文介绍scrapy使用scrapy-deltafetch这个插件来实现增量爬取，这里以爬取【美食杰】上的菜谱信息为例。
+
+正文
+    安装scrapy-deltafetch
+        $ pip install scrapy-deltafetch
+        如安装过程报错Can't find a local Berkeley DB installation.请参考：http://jinbitou.net/2018/01/27/2579.html
+
+    新建项目和爬虫
+        $ scrapy startproject meishijie PycharmProjects/meishijie
+        $ cd PycharmProjects/meishijie
+        $ scrapy genspider meishi meishij.net
+    settings.py
+        用Pycharm打开生成的项目，编辑settings.py，添加如下内容：
+
+        SPIDER_MIDDLEWARES = { 
+        ‘scrapy_deltafetch.DeltaFetch’: 100 
+        } 
+        DELTAFETCH_ENABLED = True
+
+    meishi.py
+        编辑爬虫文件meishi.py，因为是测试我就不写太多逻辑了，大家知道就好。
+
+        # -*- coding: utf-8 -*-
+        import scrapy
+
+
+        class MeishiSpider(scrapy.Spider):
+            name = 'meishi'
+            allowed_domains = ['meishij.net']
+            start_urls = ['http://www.meishij.net/yaoshanshiliao/jibingtiaoli/weiyan/']
+
+            def parse(self, response):
+                for ms in response.xpath("//div[contains(@class,'i_w')]"):
+                    item = {}
+                    title = ms.xpath("div/div/strong/text()").extract_first()
+                    hot = ms.xpath("div/div/span/text()").extract_first()
+                    item["title"] = title
+                    item["hot"] = hot
+                    yield item
+                next_page = response.xpath("//a[@class='next']/@href").extract_first()
+                print("下一页：", next_page)
+                if next_page:
+                    yield scrapy.Request(response.urljoin(next_page), callback=self.parse)
+    如上，items.py，pipelines.py，middlewares.py不做任何改动，保持默认就好。
+
+    运行
+    运行如下命令就可以看到scrapy已经愉快地跑起来了
+
+    $ scrapy crawl meishi
+    很快，所有链接已经爬取完毕，查看运行日志
+
+        2018-01-27 14:11:18 [scrapy.statscollectors] INFO: Dumping Scrapy stats:
+        {'deltafetch/stored': 1500,
+        'downloader/request_bytes': 25530,
+        'downloader/request_count': 76,
+        'downloader/request_method_count/GET': 76,
+        'downloader/response_bytes': 1280237,
+        'downloader/response_count': 76,
+        'downloader/response_status_count/200': 76,
+        'finish_reason': 'finished',
+        'finish_time': datetime.datetime(2018, 1, 27, 6, 11, 18, 772936),
+        'item_scraped_count': 1500,
+        'log_count/DEBUG': 1577,
+        'log_count/INFO': 7,
+        'memusage/max': 52551680,
+        'memusage/startup': 52551680,
+        'request_depth_max': 74,
+        'response_received_count': 76,
+        'scheduler/dequeued': 75,
+        'scheduler/dequeued/memory': 75,
+        'scheduler/enqueued': 75,
+        'scheduler/enqueued/memory': 75,
+        'start_time': datetime.datetime(2018, 1, 27, 6, 10, 55, 141746)}
+        2018-01-27 14:11:18 [scrapy.core.engine] INFO: Spider closed (finished)
+        可以知道，scrapy共发起了包括入口在内的76次请求，爬取了1500个item，deltafetch存储了这1500个item对应请求的指纹信息。
+
+    测试增量爬取
+    再次运行scrapy crawl meishi命令
+
+        2018-01-27 14:27:39 [scrapy_deltafetch.middleware] INFO: Ignoring already visited: <GET http://www.meishij.net/shiliao.php?st=3&cid=178&sortby=update&page=2>
+        2018-01-27 14:27:39 [scrapy.core.engine] INFO: Closing spider (finished)
+        2018-01-27 14:27:39 [scrapy.statscollectors] INFO: Dumping Scrapy stats:
+        {'deltafetch/skipped': 1,
+        'deltafetch/stored': 20,
+        'downloader/request_bytes': 471,
+        'downloader/request_count': 2,
+        'downloader/request_method_count/GET': 2,
+        'downloader/response_bytes': 17879,
+        'downloader/response_count': 2,
+        'downloader/response_status_count/200': 2,
+        'finish_reason': 'finished',
+        'finish_time': datetime.datetime(2018, 1, 27, 6, 27, 39, 940365),
+        'item_scraped_count': 20,
+        'log_count/DEBUG': 23,
+        'log_count/INFO': 8,
+        'memusage/max': 52420608,
+        'memusage/startup': 52420608,
+        'request_depth_max': 1,
+        'response_received_count': 2,
+        'scheduler/dequeued': 1,
+        'scheduler/dequeued/memory': 1,
+        'scheduler/enqueued': 1,
+        'scheduler/enqueued/memory': 1,
+        'start_time': datetime.datetime(2018, 1, 27, 6, 27, 39, 547330)}
+        2018-01-27 14:27:39 [scrapy.core.engine] INFO: Spider closed (finished)
+        可以看到scrapy除了入口的请求外，之前请求过的链接都已经跳过，Done！
+
+    补充
+    如果想重新爬取之前已经爬取过的链接，可以通过重置DeltaFetch的缓存来实现，具体做法是给你的爬虫传一个参数deltafetch_reset，例如：
+
+    $ scrapy crawl meishi -a deltafetch_reset=1

@@ -1,0 +1,11 @@
+cookie:{}.format()
+
+In [3]: s = "{} is a {}".format('Tom','boy')
+
+In [4]: s
+Out[4]: 'Tom is a boy'
+
+In [5]: s = "{1} is a {0}".format('Tom','boy')
+
+In [6]: s
+Out[6]: 'boy is a Tom'

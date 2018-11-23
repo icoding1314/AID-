@@ -1,0 +1,13 @@
+Scrapy学习笔记(1)-在虚拟环境中安装scrapy
+http://jinbitou.net/2016/11/13/2151.html
+系统环境：CentOS7
+	本文假设你已经安装了virtualenv，并且已经激活虚拟环境ENV1，如果没有，请参考这里：使用virtualenv创建python沙盒（虚拟）环境
+1.安装scrapy依赖文件
+	#yum install python-devel
+	#yum install gcc libffi-devel openssl-devel
+2.安装Scrapy
+	#pip install Scrapy
+3.测试Scrapy
+
+(ENV1) [eason@localhost ENV1]$ scrapy shell "https://public.tableau.com/zh-cn/s/gallery"
+4.一切正常，Done！

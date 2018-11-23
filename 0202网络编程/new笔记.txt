@@ -1,0 +1,153 @@
+
+************网络编程&&多线程/多进程********************
+高 内聚:模块功能尽可能单一,不要掺杂
+低 耦合:模块之间尽可能减少关联和影响
+
+# 设置可以重复利用端口
+s.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
+# 分割字符串
+split()
+splitlines()
+
+import socket as s
+
+
+
+
+
+httpserver 响应格式
+	响应行/响应头(可以省略)/响应空行/响应体/
+	response = 'HTTP/1.1 303 Not Found\r\n'
+	response += '/r/n'
+	response += '''
+				********sorry ,not found the page.********
+				'''
+	=====================================
+	response = "HTTP/1.1 200 OK\r\n"  # 响应行
+	response += 'User-Agent:Mozilla/5.0...'  #响应头
+	response += '\r\n'    # 响应空行
+	response += f.read()  # 将响应文件
+	======================================
+	finally:
+		connfd.send(response.encode())
+
+数学：统计学(计算机实现)
+
+IO分类
+    阻塞IO  非阻塞IO  IO多路复用
+    事件驱动IO  异步IO
+    阻塞IO:程序运行遇到IO条件没有达成或者传输过程较慢的情况会出现阻塞状态，IO中最简单的逻辑情形，也是默认状态，（线性的）/（效率很低）
+    	因为某些IO田间没有达成形成阻塞
+    		e.g.:accept recv recvfrom input 
+    	处理IO事件的时候耗时较长形成阻塞
+    		e.g.：文件读写过程，网络数据发送过程
+    非阻塞IO:在程序运行中遇到IO的情形不让其产生阻塞
+    	实现手段：改变IO事件的属性，使其变为非阻塞状态
+    	通常会和循环一起使用，进行条件的
+    	s.setblocking(False)
+    	c.setblocking(False)
+    		功能：将套接字设置为非阻塞
+    		参数：默认为阻塞状态，设置为False则为非阻塞
+    套接字的超时检测（大话西游之爱你一万年，加个期限）:将原本阻塞的函数，设置一个阻塞的最长时间。在时间内如果仍然阻塞则不再等待
+    	s.settimeout(等待时长，单位s)
+    		功能：设置套接字的超时时间
+    		参数：时间(s)
+    	select join (timeout:如果不设置时间，将默认死等)
+
+    IO多路复用 import select   ***nginx使用这种方式
+    	方法：select poll epoll
+    		支持的系统为：
+	    		select -->>> windows linux unix
+	    		poll  -->>> linux unix 
+	    		epoll -->>> linux unix
+
+        select方法:
+        	定义：通过一个监测， 可以同时监控多个IO事件的行为。当哪个IO事件可以执行，既让这个IO事件发生
+
+        	IO事件就绪(IO事件即将发生的一个临界状态)：input函数输入完成，且按下enter的时候，事件不可逆转的要执行
+        	*在程序中存在的IO事件中选择要检测的
+        	*创建监测，将检测的IO事件注册
+        	*等待监测的IO事件发生，判断是什么IO事件
+        	*处理相应的IO
+        	rs,ws,xs = select(rlist,wlist,xlist[,timeout])
+        		功能：监控IO事件，阻塞等待监控的IO事件发生
+        		参数：（表示关注不同的方面，三个列表中可以同时有同一个参数）
+        			rlist 列表  存放我们需要等待处理的IO
+        			wlist 列表 存放我们想主动处理的IO
+        			xlist 列表  存放出错希望去处理的IO
+        			timeout 超时检测
+        		返回值：
+        			rs 列表  rlist中准备就绪的IO
+        			ws 列表  wlist中准备就绪的IO
+        			xs 列表  xlist中准备就绪的IO
+        		*在处理IO时不要形成死循环，让一个客户端单独占有服务端
+        		*IO多路复用形成一种可以同时处理多个IO的效果，效率较高
+        poll方法: 
+            1.创建poll对象
+                p = select.poll()
+            2.添加注册事件
+                p.register(s,POLLIN | POLLERR)  ##只写s,表示关注所有事件
+                    事件:POLLIN POLLOUT POLLERR POLLHUP POLLNVAL
+                          rlist   wlist  xlist    断开  无效数据
+                p.unregister(s)   ##从关注事件中移除
+            3.阻塞等待IO发生
+                events = p.poll()
+                    功能:阻塞等待IO发生
+                    返回值:events 是一个列表,列表中每一个元素都是一个元组,代表一个发生的IO事件
+                        [(fileno,           event),(),()...]
+                        就绪IO的文件描述符  具体就绪事件
+                    *需要通过文件描述符(fileno)找到对应的IO对象
+                        IO地图:{s.fileno() : s},始终要维护地图
+                    套接字属性方法：
+                        telnet 127.0.0.1 8888：测试使用
+                        s.fileno()
+                        功能：获取套接字的文件描述符
+                        文件描述符：每一个IO事件操作系统都会分配一个正整数与之匹配，该整数即为此IO的文件描述符(从3以后还是排序，默认前三个被以下三个占用)
+                            sys.stdin.fileno()  0
+                            sys.stdout.fileno()  1
+                            sys.stderr.fileno()  2
+                        s.getsockname():获取台阶子绑定的地址
+                        s.getpeername():获取连接套接字客户端的地址    ***用的较多
+                        s.setsockopt(level,optname,value):设置套接字选项,返回值为获取的值
+                            # 设置端口可立即重用
+                            s.getsockopt(SOL_SOCKET,SO_REUSEADDR)
+                            print(s.getsockopt(SOL_SOCKET,SO_REUSEADDR)) # 1
+                            level:设置选项的类型 SOL_SOCKET
+                            optname:子类选项
+                            value:要设置的值
+            4.处理具体的IO
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+位运算：按照二进制位进行运算操作
+	& | ^ << >> 左移相当于*2，右移相当于地板除2
+	& 一0则0
+	| 一1则1
+	^ 相同0，不同1
+	
+	使用：
+		1.在做底层硬件时操作寄存器 
+		2.做标志位的过滤
+
+
+name,url,username,password
+code.tarena.com.cn,http://code.tarena.com.cn/,tarenacode,code_2013
+www.tmooc.cn,http://www.tmooc.cn/,17710764362,0438
+www.tmooc.cn,http://www.tmooc.cn/,99850034@qq.com,m123456789
+uc.tmooc.cn,http://uc.tmooc.cn/login/jumpTologin,13810458405,13810458405

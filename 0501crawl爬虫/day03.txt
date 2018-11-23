@@ -1,0 +1,166 @@
+Day02回顾
+1、关于正则解析
+  1、分组(想要抓取什么内容就加小括号())
+  2、正则方法
+    p = re.compile('....')
+    r_list = p.findall(html)
+    结果 ：[(),(),(),()]
+  3、贪婪匹配 ： .*
+  4、非贪婪匹配 ：.*?
+2、抓取步骤
+  1、找URL
+  2、写正则表达式
+  3、定义类,写程序框架
+  4、补全代码
+3、存入csv文件
+  import csv
+  with open("XXX.csv","a",newline="",encoding="..") as f:
+      writer = csv.writer(f)
+      writer.writerow([...,...,...])
+4、Fiddler常用菜单
+  1、Inspector ：请求、响应两部分
+  2、常用选项
+    1、Headers
+    2、WebForms
+    3、Raw ：请求 --> 纯文本
+5、cookie和session
+  cookie ：客户端
+  session ：Web服务器端
+6、请求方式
+  1、GET
+  2、POST
+  3、Cookie模拟登陆
+    1、先登陆成功1次,利用抓包工具抓取到Cookie
+    2、将Requset Header(包含cookie)处理为字典,作为参数发请求
+7、安装模块
+  1、Aanconda Prompt ：conda install 模块名
+  2、Windows cmd     ：python -m pip install 模块名
+8、requests模块
+  1、get(url,params=params,headers=headers)
+     params : 查询参数,字典,不用编码,不用URL拼接
+  2、post(url,data=data,headers=headers)
+     data ：Form表单数据,字典,不用编码,不用转码
+  3、响应对象属性
+    1、encoding ：响应字符编码,res.encoding="utf-8"
+    2、text     ：字符串
+    3、content  ：字节流
+    4、status_code ：响应码
+    5、url      ：返回实际数据的URL
+  4、非结构化数据保存
+    html = res.content
+    with open("XXX","wb") as f:
+        f.write(html)
+***********************************
+Day03笔记
+1、requests模块
+  1、代理(参数名：proxies)
+    1、获取代理IP的网站
+      西刺代理网站
+      快代理
+      全网代理
+    2、普通代理
+      proxies = {"协议":"协议://IP地址:端口号"}
+	183.129.207.82	11597
+	183.230.177.118	8060
+    3、私密代理
+      proxies = {"http":"http://309435365:szayclhp@123.206.119.108:21081"}
+  2、案例1 ：爬取链家二手房信息 --> 存到MySQL数据库中
+    1、找URL
+      https://bj.lianjia.com/ershoufang/pg1/
+    2、正则
+	<div class="houseInfo".*?data-el="region">(.*?)</a>.*?<div="totalPrice">.*?<span>(.*?)</span>(.*?)</div>
+    3、写代码
+  3、Web客户端验证(参数名:auth)
+    1、auth=("用户名","密码")
+       auth=("tarenacode","code_2013")
+    2、案例 ：09_Web客户端验证.py
+  4、SSL证书认证(参数名:verify)
+    1、verify = True : 默认,进行SSL证书认证
+    2、verify = False: 不做认证
+2、urllib.request中Handler处理器
+  1、定义
+    自定义的urlopen()方法,urlopen()方法是一个特殊的opener(模块已定义好),不支持代理等功能,通过Handler处理器对象来自定义opener对象
+  2、常用方法
+    1、build_opener(Handler处理器对象) ：创建opener对象
+    2、opener.open(url,参数)
+  3、使用流程
+    1、创建相关的Handler处理器对象
+      http_handler = urllib.request.HTTPHandler()
+    2、创建自定义opener对象
+      opener = urllib.request.build_opener(http_handler)
+    3、利用opener对象打开url
+      req = urllib.request.Request(url,headers=headers)
+      res = opener.open(req)
+  4、Handler处理器分类
+    1、HTTPHandler() ：没有任何特殊功能
+    2、ProxyHandler(普通代理)
+      代理: {"协议":"IP地址:端口号"}
+    3、ProxyBasicAuthHandler(密码管理器对象) ：私密代理
+    4、HTTPBasicAuthHandler(密码管理器对象) : web客户端认证
+    5、密码管理器对象作用
+      1、私密代理
+      2、Web客户端认证
+      3、程序实现流程
+        1、创建密码管理器对象
+	  pwdmg = urllib.request.HTTPPasswordMgrWithDefaultRealm()
+	2、把认证信息添加到密码管理器对象
+	  pwdmg.add_password(None,webserver,user,passwd)
+	3、创建Handler处理器对象
+	  1、私密代理
+	    proxy = urllib.request.ProxyAuthBasicHandler(pwdmg)
+	  2、Web客户端
+	    webbasic = urllib.request.HTTPBasicAuthHandler(pwdmg)
+安装：
+  1、Windows ：安装selenium
+    Anaconda Prompt下执行 : 
+        python -m pip install selenium
+  
+  2、Ubuntu ：安装Scrapy框架
+    #### 依赖库较多,以下为全部依赖库,有些已安装 ####
+    1、sudo apt-get install libssl-dev
+       sudo apt-get install libffi-dev 
+       sudo apt-get install python3-dev
+       sudo apt-get install build-essential
+       sudo apt-get install libxml2
+       sudo apt-get install libxml2-dev
+       sudo apt-get install libxslt1-dev
+       sudo apt-get install zlib1g-dev
+    2、sudo pip3 install Scrapy
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

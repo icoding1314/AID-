@@ -1,0 +1,169 @@
+Day03回顾
+1、requests模块方法
+  1、get()参数
+    1、查询参数 ：params -> 字典
+    2、代理 ：proxies -> 字典
+      1、普通代理 ：{"协议":"协议://IP地址:端口号"}
+      2、私密代理 
+        {"协议":"协议://用户名:密码@IP地址:端口号"}
+    3、Web客户端验证 ：auth -> 元组
+      auth = ("tarenacode","code_2013")
+    4、SSL证书认证 ：verify -> 默认True
+    5、timeout
+  2、post()方法
+    1、data -> 字典,Form表单数据
+  3、响应对象属性
+    1、text -> 字符串
+    2、encoding -> res.encoding = "utf-8"
+    3、content -> 字节流
+    4、status_code -> 服务器响应码
+2、数据持久化存储
+  1、MySQL流程
+    1、db = pymysql.connect("localhost",.....,"库名",charset="utf8")
+    2、cursor = db.cursor()
+    3、cursor.execute("sql命令",[])
+    4、db.commit()
+    5、cursor.close()
+    6、db.close()
+  2、mongodb流程
+    1、conn = pymongo.MongoClient("localhost",27017)
+    2、db = conn.库名
+    3、myset = db.集合名
+    4、myset.insert(字典)
+    终端操作：
+    1、mongo
+    2、show dbs
+    3、use 库名
+    4、show tables
+    5、db.集合名.find().pretty()
+3、Handler处理器(urllib库中)
+  1、使用流程
+    1、创建Handler ：ProxyHandler(普通代理IP)
+    2、创建opener  ：build_opener(Handler)
+    3、发请求      ：opener.open(request)
+  2、ProxyHandler
+    1、ph = urllib.request.ProxyHandler({"http":"IP:.."})
+    2、opener = urllib.request.bulid_opener(ph)
+    3、req = urllib.request.Request(url,headers=...)
+    4、res = opener.open(req)
+    5、html = res.read().decode("utf-8")
+  3、Handler处理器分类
+    1、ProxyHandler({普通代理IP})
+    2、ProxyBasicAuthHandler(密码管理器对象)
+    3、HTTPBasicAuthHandler(密码管理器对象)
+    4、流程
+      1、创建
+        pwdmg = urllib.request.HTTPPasswordMgrWith...()
+      2、添加认证信息
+        pwdmg.add_password(None,
+	                   {"协议":"IP:..},"user","pwd")
+      3、Handler开始
+*****************************************************
+Day04笔记
+1、xpath工具(解析)
+  1、xpath
+    在XML文档中查找信息的语言,同样适用于HTML文档的检索
+  2、xpath辅助工具
+    1、Chrome插件 ：XPath Helper
+      1、打开 ：Ctrl + Shift + X
+      2、关闭 ：Ctrl + Shift + X
+    2、Firefox插件 ：XPath checker
+    3、XPath表达式编辑工具 ：XML quire
+  3、xpath匹配规则
+    1、匹配演示
+      1、查找bookstore下所有节点：/bookstore
+      2、查找所有的book节点：//book
+      3、查找所有book下的title节点中,lang属性为"en"的节点
+        //book/title[@lang="en"]
+      4、查找bookstore下的第2个book节点下的title节点:
+        /bookstore/book[2]/title/text()
+    2、选取节点
+      /  : 从根节点开始选取 
+      // : 从整个文档中查找节点
+           //price  、  /bookstore/book//price
+      @  : 选取某个节点的属性
+           //title[@lang="en"]
+    3、 @的使用
+      1、选取1个节点 ： //title[@lang="en"]
+      2、选取N个节点 ： //title[@lang]
+      3、选取节点的属性值 : //title/@lang
+	<a class=....,src="http://..."
+    4、匹配多路径
+      1、符号 ： |
+      2、获取所有book节点下的 title节点和price节点
+        //book/title | //book/price
+    5、函数
+      1、contains() : 匹配一个属性值中包含某些字符串的节点
+      //title[contains(@lang,"e")]
+      2、text() 
+        //title[contains(@lang,"e")]/text()
+2、lxml库及xpath使用
+  1、lxml库 ：HTML/XML解析库
+    1、安装 
+      python -m pip install lxml
+      conda install lxml
+    2、使用流程
+      1、导模块
+        from lxml import etree
+      2、利用lxml库的etree模块创建解析对象
+        parseHtml = etree.HTML(html)
+      3、解析对象调用xpath工具定位节点信息
+        r_list = parseHtml.xpath('xpath表达式')
+	### 只要调用了xpath,结果一定是列表 ###
+    3、示例 ：见01_xpath示例.py
+    4、如何获取节点对象的内容
+      节点对象.text
+    5、案例1 ：抓取百度贴吧帖子里面所有的图片
+      1、目标 ：抓取指定贴吧所有图片
+      2、思路
+        1、获取贴吧主页URL,下一页：找URL规律
+	2、获取1页中每个帖子的URL
+	3、对每个帖子URL发请求,获取帖子里图片URL
+	4、对图片URL发请求,以wb方式写入本地文件
+      4、步骤
+        1、获取贴吧主页URL
+	  http://tieba.baidu.com/f? + 查询参数
+	2、找到页面中所有帖子的URL
+	  src : 完整链接
+	  href : 和主URL进行拼接
+	    /p/5926064184
+            http://tieba.baidu.com/p/5926064184
+	  xpath匹配链接：
+	   写法1： //div[@class="col2_right j_threadlist_li_right"]/div/div/a/@href
+
+           写法2(推荐): //div[@class="t_con cleafix"]/div/div/div/a/@href
+	3、找每个帖子中图片URL
+	  Xpath匹配：
+	    //img[@class="BDE_Image"]/@src
+	4、代码实现
+    6、案例2 ：糗事百科-xpath
+      1、目标 ：用户昵称、段子内容、好笑数、评论数
+      2、步骤
+        1、找URL
+	  https://www.qiushibaike.com/8hr/page/1/
+	2、xpath匹配
+	  1、基准xpath：//div[contains(@id,"qiushi_tag_")]
+
+	    用户昵称： ./div/a/h2
+	    段子内容： .//div[@class="content"]/span
+	    好笑数量： .//i
+	    评论数量： .//i
+3、动态网站数据抓取
+  1、Ajax动态加载
+    1、特点 ：滚动鼠标混轮时加载
+    2、抓包工具 ：查询参数在 WebForms -> QueryString
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

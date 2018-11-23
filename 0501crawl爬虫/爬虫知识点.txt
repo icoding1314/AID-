@@ -1,0 +1,1034 @@
+
+王伟超
+  wangweichao@tedu.cn
+1、网络爬虫
+  1、定义 ：网络蜘蛛、网络机器人,抓取网络数据的程序
+  2、总结 ：用Python程序去模仿人去访问网站,模仿的越逼真越好
+  3、爬取数据的目的 ：通过有效的大量数据分析市场走势、公司决策
+2、企业获取数据的方式
+  1、公司自有数据
+  2、第三方数据平台购买
+    数据堂、贵阳大数据交易所
+  3、爬虫爬取数据
+    市场上没有或者价格太高,利用爬虫程序爬取
+3、Python做爬虫优势
+  请求模块、解析模块丰富成熟,强大的scrapy框架
+  PHP ：对多线程、异步支持不太好
+  JAVA ：代码笨重,代码量很大
+  C/C++ ：虽然效率高,但是代码成型很慢
+4、爬虫分类
+  1、通用网络爬虫(搜索引擎引用,需要遵守robots协议)
+    http://www.taobao.com/robots.txt
+    1、搜索引擎如何获取一个新网站的URL
+      1、网站主动向搜索引擎提供(百度站长平台)
+      2、和DNS服务网(万网),快速收录新网站
+  2、聚焦网络爬虫
+    自己写的爬虫程序：面向主题的爬虫、面向需求的爬虫
+5、爬取数据步骤
+  1、确定需要爬取的URL地址
+  2、通过HTTP/HTTPS协议来获取相应的HTML页面
+  3、提取HTML页面有用的数据
+    1、所需数据,保存
+    2、页面中有其他的URL,继续 第2步
+6、Anaconda和Spyder
+  1、Anaconda ：开源的Python发行版本
+  2、Spyder ：集成开发环境
+    Spyder常用快捷键：
+      1、注释/取消注释 ：ctrl + 1
+      2、保存 ：ctrl + s
+      3、运行程序 ：f5
+      4、自动补全 ：Tab
+7、Chrome浏览器插件
+  1、安装步骤
+    1、右上角 - 更多工具 - 扩展程序
+    2、点开右上角 - 开发者模式
+    3、把插件 拖拽到 浏览器页面,释放鼠标,点击 添加扩展...
+  2、插件介绍
+    1、Proxy SwitchOmega ：代理切换插件
+    2、Xpath Helper ：网页数据解析插件
+    3、JSON View    ：查看json格式的数据(好看)
+8、Fiddler抓包工具
+  1、抓包工具设置
+    1、Tools->options->HTTPS->...from browers only
+    2、connections ：设置端口号 8888
+  2、设置浏览器代理
+    Proxy SwitchOmega -> 选项 -> 新建情景模式 -> HTTP 127.0.0.1 8888 -> 应用选项
+
+    浏览器右上角图标 -> AID1806 -> 访问百度
+9、WEB
+  1、HTTP和HTTS
+    1、HTTP ：80
+    2、HTTPS ：443,HTTP的升级版,加了一个安全套接层
+  2、GET和POST
+    1、GET ：查询参数都会在URL上显示出来
+    2、POST：查询参数和需要提交数据是隐藏在Form表单里的,不会再URL地址上显示
+  3、URL ：统一资源定位符
+    https://  item.jd.com  :80   /26809408972.html #detail
+     协议     域名/IP地址  端口  访问资源的路径    锚点
+  4、User-Agent
+    记录用户的浏览器、操作系统等,为了让用户获取更好的HTML页面效果
+    User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36
+
+    Mozilla Firefox ：(Gecko内核)
+    IE ：Trident(自己的内核)
+    Linux : KTHML(like Gecko)
+    Apple ：Webkit(like KHTML)
+    Google：Chrome(like Webkit)
+    其他浏览器都是模仿IE/Chrome
+10、爬虫请求模块
+  1、版本
+    1、python2 ：urllib2、urllib
+    2、python3 ：把urllib和urllib2合并,urllib.request
+  2、常用方法
+    1、urllib.request.urlopen("网址")
+      1、作用 ：向网站发起一个请求并获取响应
+        字节流 = response.read()
+        字符串 = response.read().decode("utf-8")
+
+Day01回顾
+1、请求模块(urllib.request)
+  1、Request(url,data=data,headers=headers)
+  2、urlopen(请求对象)
+2、响应对象res的方法
+  1、res.read() ##数据类型：bytes
+     res.read().decode("utf-8") ## 数据类型 ：string
+  2、res.getcode()
+  3、res.geturl()
+3、url编码模块(urllib.parse)
+  1、urlencode(字典) 
+    原始数据 ：kw={"kw":"只手遮天"}
+    urlencode后 ：kw=%e8%e5%d3...  #字符串
+  2、quote(字符串)
+    s = "只手遮天"
+    quote后：%e8%e5%d3...
+  3、unquote()
+4、数据爬取步骤
+  1、找URL(拼接)
+  2、获取响应内容
+  3、保存
+5、请求方式
+  1、GET ：查询参数在URL地址上显示
+  2、POST(参数名data) ：查询参数在Form表单里
+    注意：data一定要为bytes数据类型
+      data = {....}
+      data = urlencode(data)  # 字符串
+      data = bytes(data,"utf-8") # 字符串 -> 字节流
+      data.encode("utf-8")
+*****************************
+Day02笔记
+1、解析
+  1、数据的分类
+    1、结构化数据
+      特点 ：有固定的格式,如 ：HTML、XML、JSON
+    2、非结构化数据
+      示例 ：图片、音频、视频,这类数据一般都存储为二进制
+  2、正则表达式re
+    1、使用流程
+      1、创建编译对象 ：p = re.compile("正则表达式")
+      2、对字符串匹配 ：r = p.match("字符串")
+      3、获取匹配结果 ：print(r.group())
+    2、常用方法
+      1、match(s) ：字符串开头的第1个,返回对象
+      2、search(s)：从开始往后找,匹配第1个,返回对象
+      3、group()  ：从match或search返回对象中取值
+      4、findall()：所有全部匹配,返回一个列表
+    3、表达式
+      .  匹配任意字符(不能匹配\n)
+      \d 数字
+      \s 空白字符
+      \S 非空白字符  
+      [...] 包含[]内容 ：A[BCD]E  --> ABE  ACE  ADE 
+      \w 字母、数字、_
+
+      *  0次或多次
+      ?  0次或1次
+      +  1次或多次
+      {m} m次
+      {m,n} m-n次  AB{1,3}C --> ABC ABBC ABBBC
+
+      贪婪匹配(.*) ：在整个表达式匹配成功的前提下,尽可能多的匹配*
+
+Day02回顾
+1、关于正则解析
+  1、分组(想要抓取什么内容就加小括号())
+  2、正则方法
+    p = re.compile('....')
+    r_list = p.findall(html)
+    结果 ：[(),(),(),()]
+  3、贪婪匹配 ： .*
+  4、非贪婪匹配 ：.*?
+2、抓取步骤
+  1、找URL
+  2、写正则表达式
+  3、定义类,写程序框架
+  4、补全代码
+3、存入csv文件
+  import csv
+  with open("XXX.csv","a",newline="",encoding="..") as f:
+      writer = csv.writer(f)
+      writer.writerow([...,...,...])
+4、Fiddler常用菜单
+  1、Inspector ：请求、响应两部分
+  2、常用选项
+    1、Headers
+    2、WebForms
+    3、Raw ：请求 --> 纯文本
+5、cookie和session
+  cookie ：客户端
+  session ：Web服务器端
+6、请求方式
+  1、GET
+  2、POST
+  3、Cookie模拟登陆
+    1、先登陆成功1次,利用抓包工具抓取到Cookie
+    2、将Requset Header(包含cookie)处理为字典,作为参数发请求
+7、安装模块
+  1、Aanconda Prompt ：conda install 模块名
+  2、Windows cmd     ：python -m pip install 模块名
+8、requests模块
+  1、get(url,params=params,headers=headers)
+     params : 查询参数,字典,不用编码,不用URL拼接
+  2、post(url,data=data,headers=headers)
+     data ：Form表单数据,字典,不用编码,不用转码
+  3、响应对象属性
+    1、encoding ：响应字符编码,res.encoding="utf-8"
+    2、text     ：字符串
+    3、content  ：字节流
+    4、status_code ：响应码
+    5、url      ：返回实际数据的URL
+  4、非结构化数据保存
+    html = res.content
+    with open("XXX","wb") as f:
+        f.write(html)
+***********************************
+Day03笔记
+1、requests模块
+  1、代理(参数名：proxies)
+    1、获取代理IP的网站
+      西刺代理网站
+      快代理
+      全网代理
+    2、普通代理
+      proxies = {"协议":"协议://IP地址:端口号"}
+	183.129.207.82	11597
+	183.230.177.118	8060
+    3、私密代理
+      proxies = {"http":"http://309435365:szayclhp@123.206.119.108:21081"}
+  2、案例1 ：爬取链家二手房信息 --> 存到MySQL数据库中
+    1、找URL
+      https://bj.lianjia.com/ershoufang/pg1/
+    2、正则
+	<div class="houseInfo".*?data-el="region">(.*?)</a>.*?<div="totalPrice">.*?<span>(.*?)</span>(.*?)</div>
+    3、写代码
+  3、Web客户端验证(参数名:auth)
+    1、auth=("用户名","密码")
+       auth=("tarenacode","code_2013")
+    2、案例 ：09_Web客户端验证.py
+  4、SSL证书认证(参数名:verify)
+    1、verify = True : 默认,进行SSL证书认证
+    2、verify = False: 不做认证
+2、urllib.request中Handler处理器
+  1、定义
+    自定义的urlopen()方法,urlopen()方法是一个特殊的opener(模块已定义好),不支持代理等功能,通过Handler处理器对象来自定义opener对象
+  2、常用方法
+    1、build_opener(Handler处理器对象) ：创建opener对象
+    2、opener.open(url,参数)
+  3、使用流程
+    1、创建相关的Handler处理器对象
+      http_handler = urllib.request.HTTPHandler()
+    2、创建自定义opener对象
+      opener = urllib.request.build_opener(http_handler)
+    3、利用opener对象打开url
+      req = urllib.request.Request(url,headers=headers)
+      res = opener.open(req)
+  4、Handler处理器分类
+    1、HTTPHandler() ：没有任何特殊功能
+    2、ProxyHandler(普通代理)
+      代理: {"协议":"IP地址:端口号"}
+    3、ProxyBasicAuthHandler(密码管理器对象) ：私密代理
+    4、HTTPBasicAuthHandler(密码管理器对象) : web客户端认证
+    5、密码管理器对象作用
+      1、私密代理
+      2、Web客户端认证
+      3、程序实现流程
+        1、创建密码管理器对象
+	  pwdmg = urllib.request.HTTPPasswordMgrWithDefaultRealm()
+	2、把认证信息添加到密码管理器对象
+	  pwdmg.add_password(None,webserver,user,passwd)
+	3、创建Handler处理器对象
+	  1、私密代理
+	    proxy = urllib.request.ProxyAuthBasicHandler(pwdmg)
+	  2、Web客户端
+	    webbasic = urllib.request.HTTPBasicAuthHandler(pwdmg)
+安装：
+  1、Windows ：安装selenium
+    Anaconda Prompt下执行 : 
+        python -m pip install selenium
+  
+  2、Ubuntu ：安装Scrapy框架
+    #### 依赖库较多,以下为全部依赖库,有些已安装 ####
+    1、sudo apt-get install libssl-dev
+       sudo apt-get install libffi-dev 
+       sudo apt-get install python3-dev
+       sudo apt-get install build-essential
+       sudo apt-get install libxml2
+       sudo apt-get install libxml2-dev
+       sudo apt-get install libxslt1-dev
+       sudo apt-get install zlib1g-dev
+    2、sudo pip3 install Scrapy
+
+
+
+Day03回顾
+1、requests模块方法
+  1、get()参数
+    1、查询参数 ：params -> 字典
+    2、代理 ：proxies -> 字典
+      1、普通代理 ：{"协议":"协议://IP地址:端口号"}
+      2、私密代理 
+        {"协议":"协议://用户名:密码@IP地址:端口号"}
+    3、Web客户端验证 ：auth -> 元组
+      auth = ("tarenacode","code_2013")
+    4、SSL证书认证 ：verify -> 默认True
+    5、timeout
+  2、post()方法
+    1、data -> 字典,Form表单数据
+  3、响应对象属性
+    1、text -> 字符串
+    2、encoding -> res.encoding = "utf-8"
+    3、content -> 字节流
+    4、status_code -> 服务器响应码
+2、数据持久化存储
+  1、MySQL流程
+    1、db = pymysql.connect("localhost",.....,"库名",charset="utf8")
+    2、cursor = db.cursor()
+    3、cursor.execute("sql命令",[])
+    4、db.commit()
+    5、cursor.close()
+    6、db.close()
+  2、mongodb流程
+    1、conn = pymongo.MongoClient("localhost",27017)
+    2、db = conn.库名
+    3、myset = db.集合名
+    4、myset.insert(字典)
+    终端操作：
+    1、mongo
+    2、show dbs
+    3、use 库名
+    4、show tables
+    5、db.集合名.find().pretty()
+3、Handler处理器(urllib库中)
+  1、使用流程
+    1、创建Handler ：ProxyHandler(普通代理IP)
+    2、创建opener  ：build_opener(Handler)
+    3、发请求      ：opener.open(request)
+  2、ProxyHandler
+    1、ph = urllib.request.ProxyHandler({"http":"IP:.."})
+    2、opener = urllib.request.bulid_opener(ph)
+    3、req = urllib.request.Request(url,headers=...)
+    4、res = opener.open(req)
+    5、html = res.read().decode("utf-8")
+  3、Handler处理器分类
+    1、ProxyHandler({普通代理IP})
+    2、ProxyBasicAuthHandler(密码管理器对象)
+    3、HTTPBasicAuthHandler(密码管理器对象)
+    4、流程
+      1、创建
+        pwdmg = urllib.request.HTTPPasswordMgrWith...()
+      2、添加认证信息
+        pwdmg.add_password(None,
+	                   {"协议":"IP:..},"user","pwd")
+      3、Handler开始
+*****************************************************
+Day04笔记
+1、xpath工具(解析)
+  1、xpath
+    在XML文档中查找信息的语言,同样适用于HTML文档的检索
+  2、xpath辅助工具
+    1、Chrome插件 ：XPath Helper
+      1、打开 ：Ctrl + Shift + X
+      2、关闭 ：Ctrl + Shift + X
+    2、Firefox插件 ：XPath checker
+    3、XPath表达式编辑工具 ：XML quire
+  3、xpath匹配规则
+    1、匹配演示
+      1、查找bookstore下所有节点：/bookstore
+      2、查找所有的book节点：//book
+      3、查找所有book下的title节点中,lang属性为"en"的节点
+        //book/title[@lang="en"]
+      4、查找bookstore下的第2个book节点下的title节点:
+        /bookstore/book[2]/title/text()
+    2、选取节点
+      /  : 从根节点开始选取 
+      // : 从整个文档中查找节点
+           //price  、  /bookstore/book//price
+      @  : 选取某个节点的属性
+           //title[@lang="en"]
+    3、 @的使用
+      1、选取1个节点 ： //title[@lang="en"]
+      2、选取N个节点 ： //title[@lang]
+      3、选取节点的属性值 : //title/@lang
+	<a class=....,src="http://..."
+    4、匹配多路径
+      1、符号 ： |
+      2、获取所有book节点下的 title节点和price节点
+        //book/title | //book/price
+    5、函数
+      1、contains() : 匹配一个属性值中包含某些字符串的节点
+      //title[contains(@lang,"e")]
+      2、text() 
+        //title[contains(@lang,"e")]/text()
+2、lxml库及xpath使用
+  1、lxml库 ：HTML/XML解析库
+    1、安装 
+      python -m pip install lxml
+      conda install lxml
+    2、使用流程
+      1、导模块
+        from lxml import etree
+      2、利用lxml库的etree模块创建解析对象
+        parseHtml = etree.HTML(html)
+      3、解析对象调用xpath工具定位节点信息
+        r_list = parseHtml.xpath('xpath表达式')
+	### 只要调用了xpath,结果一定是列表 ###
+    3、示例 ：见01_xpath示例.py
+    4、如何获取节点对象的内容
+      节点对象.text
+    5、案例1 ：抓取百度贴吧帖子里面所有的图片
+      1、目标 ：抓取指定贴吧所有图片
+      2、思路
+        1、获取贴吧主页URL,下一页：找URL规律
+	2、获取1页中每个帖子的URL
+	3、对每个帖子URL发请求,获取帖子里图片URL
+	4、对图片URL发请求,以wb方式写入本地文件
+      4、步骤
+        1、获取贴吧主页URL
+	  http://tieba.baidu.com/f? + 查询参数
+	2、找到页面中所有帖子的URL
+	  src : 完整链接
+	  href : 和主URL进行拼接
+	    /p/5926064184
+            http://tieba.baidu.com/p/5926064184
+	  xpath匹配链接：
+	   写法1： //div[@class="col2_right j_threadlist_li_right"]/div/div/a/@href
+
+           写法2(推荐): //div[@class="t_con cleafix"]/div/div/div/a/@href
+	3、找每个帖子中图片URL
+	  Xpath匹配：
+	    //img[@class="BDE_Image"]/@src
+	4、代码实现
+    6、案例2 ：糗事百科-xpath
+      1、目标 ：用户昵称、段子内容、好笑数、评论数
+      2、步骤
+        1、找URL
+	  https://www.qiushibaike.com/8hr/page/1/
+	2、xpath匹配
+	  1、基准xpath：//div[contains(@id,"qiushi_tag_")]
+
+	    用户昵称： ./div/a/h2
+	    段子内容： .//div[@class="content"]/span
+	    好笑数量： .//i
+	    评论数量： .//i
+3、动态网站数据抓取
+  1、Ajax动态加载
+    1、特点 ：滚动鼠标混轮时加载
+    2、抓包工具 ：查询参数在 WebForms -> QueryString
+
+Day04回顾
+1、lxml解析库
+  1、使用流程
+    1、from lxml import etree
+    2、parseHtml = etree.HTML(html)
+    3、parseHtml.xpath('xpath表达式')
+  2、xpath匹配规则
+    1、获取节点对象 ： //div[@class="Tiger"]
+    2、获取节点属性值 ：//div[@class="T"]//a/@src
+    3、函数 ：//div[contains(@class,"aa")]//a/@href
+  3、xpath高级
+    1、基准xpath表达式(节点对象列表)
+    2、for r in [节点对象列表]:
+           username = parseHtml.xpath('./xpath表达式')
+	   ... ...
+*****************************
+Day05笔记
+1、json模块
+  1、什么是json?
+    javascript中的对象和数组
+    对象 ：{key:value}  取值：对象名.key
+    数组 ：[...,...]	取值：数组[索引值]
+  2、作用
+    json格式的字符串 和 Python数据类型 之间的转换
+  3、常用方法
+    1、json.loads() : json格式 --> Python数据类型
+              json      python
+	      对象      字典
+	      数组      列表
+      见 01_json.loads示例.py
+    2、json.dumps() : Python数据类型 --> json格式
+              python       json
+	      字典         对象
+	      列表         数组
+	      元组         数组
+      ## 注意
+        1、json.dumps()默认使用ascii编码
+	2、添加参数ensure_ascii=False,禁用ascii编码
+2、动态网站数据抓取 - Ajax
+  1、特点 ：滚动鼠标滑轮时加载
+  2、案例 ：豆瓣电影排行榜数据抓取
+    1、抓取目标 ：豆瓣电影 - 排行榜 - 剧情 
+                  电影名称 、评分
+    2、代码实现
+3、selenium + phantomjs 强大的网络爬虫组合
+  1、selenium
+    1、定义 ：Web自动化测试工具,应用于Web自动化测试
+    2、特点
+      1、可以运行在浏览器,根据指定命令操作浏览器,让浏览器自动加载页面
+      2、只是工具,不支持浏览器功能,需要与第三方浏览器结合使用
+  2、phantomjs
+    1、定义 ：无界面浏览器(无头浏览器)
+    2、特点
+      1、把网站加载到内存进行页面加载
+      2、运行高效
+    3、安装
+      1、Windows
+        1、将下载的可执行文件放到Python安装目录的Scripts目录下
+	  C:\Python36\Scripts
+      2、Ubuntu
+        1、将下载的phantomjs放到一个路径下
+	2、添加环境变量：
+	  vi .bashrc 添加
+	  export PHANTOM_JS=/home/.../phantomjs-2.1.1-...
+	  export PATH=$PHANTOM_JS/bin:$PATH
+	  终端：source .bashrc
+	  终端：phantomjs
+  3、示例代码
+    1、示例代码1 : 见05_phantomjs+selenium示例1.py
+    2、示例代码2 : 见06_phantomjs+selenium示例2.py
+  4、常用方法
+    1、driver.get(url)
+    2、driver.page_source : 获取响应的html源码
+    3、driver.page_source.find("字符串")
+      1、作用 ：从html源码中搜索指定字符串
+         -1	：查找失败
+	 非-1   ：查找成功
+    4、单元素查找
+      1、driver.find_element_by_id("").text
+      2、driver.find_element_by_class_name("")
+      3、driver.find_element_by_xpath('xpath表达式')
+      4、如果匹配到多个节点,则只返回第1个节点对象
+    5、多元素查找
+      1、driver.find_elements_by_....
+      2、注意
+        1、如果结果1个,则返回节点对象,不是列表
+	2、如果结果N个,则返回列表
+      3、示例见 ：08_driver.find查找元素示例.py
+    6、对象名.send_keys("内容")
+    7、对象名.click()
+  5、案例1 ：登录豆瓣网站
+    见 ：09_selenium+Chrome登陆豆瓣案例.py
+  6、操作键盘
+    1、导模块
+      from selenium.webdrier.common.keys import Keys
+    2、常用方法
+      见 ：10_driver操作键盘示例.py
+  7、案例2 ：斗鱼直播网站主播信息抓取(JS分页加载)
+    代码见 ：11_斗鱼直播抓取案例.py
+    1、抓取目标 ：主播名称 、观众人数
+      1、主播 ：class -> dy-name ellipsis fl
+        //div[@id="live-list-content"]//span[@class="dy-name ellipsis fl"]
+
+      2、人数 ：class -> dy-num fr
+        //div[@id="live-list-content"]//span[@class="dy-num fr"]
+
+      3、下一页按钮(能点) ：class -> shark-pager-next
+      4、下一页按钮(不能点)
+        class -> shark-pager-next shark-pager-disable shark-pager-disable-next
+  8、Chromdriver如何设置无界面模式
+    1、opt = webdriver.ChromeOptions()
+    2、opt.set_headless()
+    3、driver = webdriver.Chrome(options=opt)
+    4、driver.get(url)
+  9、案例3 ：京东商品爬取
+    1、目标
+      1、商品名称
+      2、商品价格
+      3、评论数量
+      4、商家名称
+    2、代码实现
+      
+
+Day05回顾
+1、json模块
+  1、json.loads() 
+    json格式(对象、数组) -> Python(字典、列表)
+  2、json.dumps()
+    Python(字典、元组、列表) -> json(对象、数组)
+2、Ajax动态加载
+  1、抓包工具抓参数 ：WebForms -> QueryString
+  2、params = {QueryString中的一堆查询参数}
+  3、URL地址写 ：抓包工具Raw下的GET地址
+3、selenium+phantomjs
+  1、selenium : Web自动化测试工具
+  2、phantomjs ：无界面浏览器(在内存执行页面加载)
+  3、使用步骤
+    1、导入模块
+      from selenium import webdriver
+      from selenium.webdriver.common.keys import Keys
+    2、创建浏览器对象
+      driver = webdriver.PhantomJS(executable_path="...")
+    3、获取网页信息
+      driver.get(url)
+    4、查找节点位置
+      ele = driver.find_element_by_id("")
+    5、发送文字
+      ele.send_keys("")
+    6、点击
+      cli = driver.find_element_by_class_name("")
+      cli.click()
+    7、关闭
+      driver.quit()
+  4、常用方法
+    1、driver.get(url)
+    2、driver.page_source
+    3、driver.page_source.find("字符串")
+      失败 ：-1
+      成功 ：非-1
+    4、driver.find_element_by_name("属性值")
+    5、driver.find_elements_by_xpath("xpath表达式")
+    6、对象名.send_keys("")
+    7、对象名.click()
+    8、对象名.text
+    9、driver.quit()
+4、selenium+chromedriver
+  1、chromedriver
+    Chrome的Webdriver
+  2、安装
+    1、下载对应版本的chromedriver安装包
+      https://chromedriver.storage.googleapis.com/index.html
+    2、将 chromedriver.exe 放到python安装目录的Scripts目录
+  3、如何设置无界面模式
+    opt = webdriver.ChromeOptions()
+    opt.set_headless()
+
+    driver = webdriver.Chrome(options=opt)
+    driver.get(...)
+  4、driver如何执行javascript
+    driver.execute_script('window.scrollTo(0,document.body.scrollHeight)')
+*****************************************
+Day06笔记
+1、多线程爬虫
+  1、进程线程回顾
+    1、进程
+      1、系统中正在运行的一个应用程序
+      2、1个CPU核心1次只能执行1个进程,其他进程处于非运行状态
+      3、N个CPU核心可同时执行N个任务
+    2、线程
+      1、进程中包含的执行单元,1个进程可包含多个线程
+      2、线程可使用所属进程空间(1次只能执行1个线程,阻塞)
+      3、锁 ：防止多个线程同时使用共享空间
+    3、GIL ：全局解释锁
+      执行通行证,仅此1个,拿到了通行证可执行,否则 等
+    4、应用场景
+      1、多进程：大量的密集的计算
+      2、多线程：I/O密集
+        爬虫 ：网络I/O
+	写文件：本次磁盘I/O
+  2、案例 ：使用多线程爬取 百思不得其姐 段子
+    1、爬取目标 ：段子内容
+    2、URL ：http://www.budejie.com/
+    3、xpath表达式 
+      //div[@class="j-r-list-c-desc"]/a/text()
+    4、知识点
+      1、队列(from queue import Queue)
+        put()
+	get()
+	Queue.empty() ：是否为空
+	Queue.join()  ：如果队列为空,执行其他程序
+      2、线程(import threading)
+        threading.Thread(target=...)
+    5、代码实现 
+      见 ：01_多线程爬取百思不得其姐案例.py
+2、BeautifulSoup
+  1、定义
+    HTML或XML的解析器,依赖于lxml
+  2、安装
+    python -m pip install beautifulsoup4
+    导模块：
+      from bs4 import BeautifulSoup
+  3、使用流程
+    1、导入模块
+      from bs4 import BeautifulSoup
+    2、创建解析对象 
+      soup = BeautifulSoup(html,'lxml')
+    3、查找节点对象
+      soup.find_all(name="属性值")
+  4、示例代码 ：见 02_BeautifulSoup示例.py
+  5、BeautifulSoup支持的解析库
+    1、lxml         ：BeautifulSoup(html,'lxml')
+        速度快,文档容错能力强
+    2、python标准库 ：BeautifulSoup(html,'html.parser')
+        速度一般
+    3、xml解析器    ：BeautifulSoup(html,'xml')
+        速度快,文档容错能力强
+  6、节点选择器
+    1、选择节点
+      soup.节点名 ：soup.a、soup.ul
+    2、获取文本内容
+      soup.节点名.string
+  7、常用方法
+    1、find_all() ：返回列表
+      1、r_list = soup.find_all(属性名="属性值")
+         r_list = soup.find_all(class_="test")
+      2、r_list=soup.find_all("节点名",attrs={"名":"值"})
+         r_list=soup.find_all("div",attrs={"class":"test"}
+3、Scrapy框架安装(Ubuntu)
+  1、安装依赖库
+    sudo apt-get install python3-dev build-essential libssl-dev libffi-dev liblxml2 libxml2-dev libxslt1-dev zlib1g-dev
+  2、升级pyasn1模块
+    sudo pip3 install pyasn1==0.4.4
+  3、安装Scrapy
+    sudo pip3 install Scrapy
+4、Scrapy框架
+  1、Scrapy框架
+    异步处理框架,可配置和可扩展程度非常高,Python中使用最广泛的爬虫框架
+  2、框架组成
+    1、引擎(Engine) ：整个框架核心
+    2、调度器(Scheduler) ：接受从引擎发过来的URL,入队列
+    3、下载器(Downloader)：下载网页源码,返回给爬虫程序
+    4、项目管道(Item Pipeline) ：数据处理
+    5、下载器中间件(Downloader Middlewares)
+      处理引擎与下载器之间的请求与响应
+    6、蜘蛛中间件(Spider Middlerwares)
+      处理爬虫程序输入响应和输出结果以及新的请求
+    7、Item ：定义爬取结果的数据结构,爬取的数据会被赋值为Item对象
+  3、Scrapy框架的爬取流程
+    见 Scrapy框架流程.png
+  4、制作Scrapy爬虫项目步骤
+    1、新建项目
+      scrapy startproject 项目名
+    2、明确目标(items.py)
+    3、制作爬虫程序
+      XXX/spiders ：scrapy genspider 文件名 域名
+    4、处理数据(pipelines.py)
+    5、配置settings.py
+    6、运行爬虫项目
+      scrapy crawl 爬虫名
+  5、scrapy项目文件详解
+    1、目录结构
+	testspider/
+	├── scrapy.cfg   #项目基本配置文件,不用改
+	└── testspider
+	    ├── __init__.py
+	    ├── items.py       # 定义爬取数据的结构
+	    ├── middlewares.py # 下载器中间件和蜘蛛中间件实现
+	    ├── pipelines.py   # 处理数据
+	    ├── settings.py    # 项目全局配置
+	    └── spiders        # 存放爬虫程序
+		├── __init__.py
+		├── myspider.py
+    2、settings.py配置
+      # 是否遵守robots协议,该为False
+      ROBOTSTXT_OBEY = False
+
+      # 最大并发量,默认为16个
+      CONCURRENT_REQUESTS = 32
+
+Day06回顾
+1、多线程爬虫
+  1、多进程线程应用场景
+    1、多进程 ：大量密集并行计算
+    2、多线程 ：I/O密集(网络I/O、本地磁盘I/O)
+  2、多线程爬虫
+    1、URL队列 ：put(url)
+    2、RES队列 ：从URL队列中get()发请求,put(html)
+    3、创建多个RES线程,发请求获取html
+    4、创建多个解析线程,解析html
+2、BeautifulSoup ：HTML/XML解析库
+  1、使用流程
+    1、导入模块 ：from bs4 import BeautifulSoup as bs
+    2、创建对象 ：soup = bs(html,'lxml')
+    3、查找节点 ：soup.find_all(id="test")
+  2、支持解析库
+    1、lxml        ：快,文档容错能力强
+    2、html.parser ：一般
+    3、xml         ：快,文档容错能力强
+  3、常用方法
+    1、find_all() ：列表
+      1、r_list = soup.find_all(class_="test")
+      2、r_list = soup.find_all("div",attrs={"class":"a"})
+    2、节点对象方法
+      1、get_text()
+      2、string
+3、scrapy框架
+  1、异步处理框架
+  2、组成
+    Engine、Scheduler、Downloader、Spider、Item Pipeline、Downloader Middlewares、Spider Middlewares
+  3、运行流程
+    1、Engine开始统揽全局,向Spider索要URL
+    2、Engine拿到url后,给Scheduler入队列
+    3、Schduler从队列中拿出url给Engine,通过Downloader Middlewares给Downloader去下载
+    4、Downloader下载完成,把response给Engine
+    5、Engine把response通过Spider Middlewares给Spider
+    6、Spider处理完成后,
+      把数据给Engine,交给Item Pipeline处理,
+      把新的URL给Engine,重复2-6步
+    7、Scheduler中没有任何Requests请求后,程序结束
+  4、创建项目流程
+    1、scrapy startproject Lianjia
+    2、cd Lianji/Lianjia
+    3、定义爬取数据结构 ：subl items.py
+      import scrapy
+      class LianjiaItem(scrapy.Item):
+          houseName = scrapy.Field()
+	  totlePrice = scrapy.Field()
+    4、cd spiders
+    5、scrapy genspider lianjiaspider lianjia.com
+      class LianjiaspiderSpider():
+          name = "lianjiaspider"
+	  allow_domains = ["lianjia.com"]
+	  start_urls = [""]
+	  def parse(self,response):
+	      ... 
+    6、项目管道 ：subl pipelines.py
+      class LianjiaPipeline(object):
+          def process_item(self,item,spider):
+	      return item
+    7、全局配置 ：subl settings.py
+      ROBOTSTXT_OBEY=False
+      ITME_PIPELINES=
+        {'Lianjia.pipelines.LianjiaPipeline':100}
+      DEFAULT_REQUEST_HEADERS={"User-Agent":"Mozilla/5.0"}
+    8、cd spiders -> scrapy crawl lianjiaspider
+*******************************************
+Day07笔记
+1、生成器
+  1、yield作用 ：把一个函数当做一个生成器使用
+  2、斐波那契数列 Fib.py
+  3、yield特点 ：让函数暂停,等待下1次调用
+2、项目 ：Csdn 
+  1、知识点 yield 、pipelines.py
+  2、目标
+    1、https://blog.csdn.net/qq_42231391/article/details/83506181
+    2、标题、发表时间、阅读数
+    3、步骤
+      1、创建项目
+      2、定义数据结构(items.py)
+      3、创建爬虫程序
+      4、第3步抓取的数据通过项目管道去处理
+      5、全局配置
+      6、运行爬虫程序
+3、项目 ：Daomu
+  1、URL ：http://www.daomubiji.com/dao-mu-bi-ji-1
+  2、目标
+    书名、书的标题、章节名称、章节数量、章节链接
+  3、步骤
+    1、创建项目 Daomu
+    2、改items.py(定义数据结构)
+    3、创建爬虫文件
+    4、改pipelines.py(项目管道文件)
+    5、配置settings.py
+    6、运行爬虫
+4、知识点
+  1、extract() : 获取选择器对象中的文本内容
+    # response.xpath('...') 得到选择器对象(节点所有内容) [<selector ...,data='<h1>...</h1>']
+    # response.xpath('.../text()') 得到选择器对象(节点文本) [<selector ...,data='文本内容'>]
+    # extract() : 把选择器对象中的文本取出来 ['文本内容']
+  2、爬虫程序中的 start_urls必须为列表
+    start_urls = [] 
+  3、pipelines.py中必须有1个函数叫
+    process_item(self,item,spider),当然还可以写任何其他函数
+5、存入MongoDB数据库
+  1、在settings.py中定义相关变量
+    MONGODB_HOST = 
+    MONGODB_PORT = 
+  2、可在pipelines.py中新建一个class
+    from Daomu import settings
+    class DaomumongoPipeline(object):
+        def __init__(self):
+	    host = settings.MONGODB_HOST
+  3、在settings.py文件中设置你的项目管道
+    ITEM_PIPELINES = {
+      "Daomu.pipelines.DaomumongoPipeline":100,
+      }
+6、存入MySQL数据库
+  1、self.db.commit()
+7、Csdn项目存到mongodb和mysql
+8、腾讯招聘网站案例
+  1、URL
+    第1页：https://hr.tencent.com/position.php?&start=0
+    第2页：https://hr.tencent.com/position.php?&start=10
+  2、Xpath匹配
+    基准xpath表达式(每个职位节点对象)
+      //tr[@class="even"] | //tr[@class="old"]
+    职位名称 ： ./td[1]/a/text()
+    详情链接 ： ./td[1]/a/@href
+    职位类别 ： ./td[2]/text()
+    招聘人数 ： ./td[3]/text()
+    工作地点 ： ./td[4]/text()
+    发布时间 ： ./td[5]/text()
+9、设置手机抓包
+  1、Fiddler(设置抓包)
+  2、在手机上安装证书
+    1、手机浏览器打开：http://IP地址:8888 (IP地址是你电脑的IP,8888是Fiddler设置的端口)
+    2、在页面上下载(FiddlerRoot certificate)
+      下载文件名：FiddlerRoot.cer
+    3、直接安装
+  3、设置代理
+    1、打开手机上已连接的无线, 代理设置 -> 改成 手动
+      IP地址：你电脑的IP (ipconfig / ifconfig)
+      端口号：8888
+
+
+
+Day07回顾
+1、response.xpath('xpath表达式')
+  xpath表达式没有text()则结果为选择器对象
+  xpath表达式加上text()则结果为选择器文本对象
+  extract()将列表中所有元素序列化为Unicode字符串
+2、MongoDB持久化存储
+  1、settings.py设置相关变量
+    MONGODB_HOST = "localhost"
+    MONGODB_PORT = 27017
+    MONGODB_DBNAME = "daomudb"
+    MONGODB_DOCNAME = "daomubiji"
+  2、pipelines.py写程序
+    import pymongo
+    from Daomu import settings
+    class DaomuPipeline(object):
+        def __init__(self):
+	    host = settings.MONGODB_HOST
+	    port = settings.MONGODB_PORT
+	    dbName = settings.MONGODB_DBNAME
+	    docName = settings.MONGODB_DOCNAME
+	    conn = pymongo.MongoClient(host=host,port=port)
+	    exec("db=conn." + dbName)
+	    exec("self.myset=db."+docName)
+  3、settings.py中添加项目管道
+    ITEM_PIPELINES = {"项目名.pipelines.类名":300}
+4、MySQL
+  1、settings.py中设置相关变量
+  2、pipelines.py中定义相关类
+  3、settings.py中添加项目管道
+5、Scrapy模块方法
+  yield scrapy.Request(url,callback=解析方法名)
+********************************
+Day08笔记
+1、如何设置随机User-Agent
+  1、settings.py(少量User-Agent切换,不推荐)
+    1、定义USER_AGENT变量值
+    2、DEFAULT_REQUEST_HEADER={"User-Agent":"",}
+  2、设置中间件的方法来实现
+    1、项目目录中新建user_agents.py,放大量Agent
+      user_agents = ['','','','','']
+    2、middlewares.py写类:
+      from 项目名.user_agents import user_agents
+      import random
+      class RandomUserAgentMiddleware(object):
+         def process_request(self,request,spider):
+	   request.headers["User-Agent"] = random.choice(user_agents)
+
+    3、设置settings.py
+      DOWNLOADER_MIDDLEWARES = {
+        "项目名.middlewares.RandomUserAgentMiddleware" : 1}
+  3、直接在middlewares.py中添加类
+    class RandomUserAgentMiddleware(object):
+        def __init__(self):
+	    self.user_agents = ['','','','','','']
+	def process_request(self,request,spider):
+	    request.header['User-Agent'] = random.choice(self.user_agents)
+2、设置代理(DOWNLOADER MIDDLEWARES)
+  1、middlewares.py中添加代理中间件ProxyMiddleware
+    class ProxyMiddleware(object):
+        def process_request(self,request,spider):
+            request.meta['proxy'] = "http://180.167.162.166:8080"
+  2、settings.py中添加
+    DOWNLOADER_MIDDLEWARES = {
+       'Tengxun.middlewares.RandomUserAgentMiddleware': 543,
+       'Tengxun.middlewares.ProxyMiddleware' : 250,
+    }
+3、图片管道 ：ImagePipeline
+  1、案例 ：斗鱼图片抓取案例(手机app)
+    1、菜单 --> 颜值
+    http://capi.douyucdn.cn/api/v1/getVerticalRoom?limit=20&offset=0
+  2、抓取目标
+    1、图片链接
+    2、主播名
+    3、房间号
+    4、城市
+    把所有图片保存在/home/tarena/day08/Douyu/Douyu/Images
+  3、步骤
+    1、前提 ：手机和电脑为一个局域网
+    2、Fiddler抓包工具
+      Connections : Allow remote computers to connect
+    3、Win+R ：cmd -> ipconfig ->以太网IP地址
+    4、配置手机
+      手机浏览器 -> http://IP地址:8888
+      下载 ：FiddlerRoot certificate
+    5、安装
+      设置 -> 更多 -> ... -> 从存储设备安装
+    6、设置手机代理
+      长按Wifi, -> 代理
+        IP地址：IP地址
+	端口号：端口号
+4、ImagePipeline的使用方法
+  1、pipelines.py中进行操作
+    1、导入模块
+      from scrapy.pipelines.images import ImagesPipeline
+    2、自定义类,继承 ImagesPipeline
+      class DouyuImagePipeline(ImagesPipeline):
+           # 重写get_media_requests方法
+	   def get_media_requests(self,item,info):
+               # 向图片URL发起请求,并保存到本地
+	       yield scrapy.Request(url=item['link'])
+  2、settings.py中定义图片存储路径
+    IMAGES_STORE = '/home/tarena/Douyu/Images'
+5、dont_filter参数
+  scrapy.Request(url,callback=...,dont_filter=False)
+  dont_filter参数 ：False->自动对URL进行去重
+                    True -> 不会对URL进行去重
+6、Scrapy对接selenium+phantomjs
+  1、创建项目 ：Jd
+  2、middlewares.py中添加selenium
+    1、导模块 ：from selenium import webdriver
+    2、定义中间件
+      class seleniumMiddleware(object):
+           ... 
+	   def process_request(self,request,info):
+	       # 注意：参数为request的url
+	       self.driver.get(request.url)
+  3、settings.py
+    DOWNLOADER_MIDDLEWARES={"Jd.middleware.seleniumMiddleware":20}
+7、Scrapy模拟登陆
+  1、创建项目 ：Renren
+  2、创建爬虫文件
+8、机器视觉与tesseract
+  1、OCR(Optical Character Recognition)光学字符识别
+    扫描字符 ：通过字符形状 --> 电子文本,OCR有很多的底层识别库
+  2、tesseract(谷歌维护的OCR识别开源库,不能import,工具)
+    1、安装 
+      1、windows下载安装包
+        https://sourceforge.net/projects/tesseract-ocr-alt/files/tesseract-ocr-setup-3.02.02.exe/download
+	安装完成后添加到环境变量
+      2、Ubuntu : suo apt-get install tesseract-ocr
+      3、Mac    : brew install tesseract
+    2、验证
+      终端 ：tesseract test1.jpg text1.txt
+  3、安装pytesseract模块
+    python -m pip install pytesseract
+    # 方法很少,就用1个,图片转字符串：image_to_sting
+  4、Python图片的标准库
+    from PIL import Image
+  5、示例     
+    1、验证码图片以wb方式写入到本地
+    2、image = Image.open("验证码.jpg")
+    3、s = pytesseract.image_to_string(image)
+  6、tesseract案例 ：登录豆瓣网站
+9、分布式介绍
+  1、条件
+    1、多台服务器(数据中心、云服务器)
+    2、网络带宽
+  2、分布式爬虫方式
+    1、主从分布式
+    2、对等分布式
+  3、scrapy-redis
+

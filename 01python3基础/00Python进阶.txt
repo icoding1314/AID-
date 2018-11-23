@@ -1,0 +1,1482 @@
+模块 Module
+  什么是模块:
+    模块是一个包含有一系列数据、函数、类等组成的程序组 
+    模块是一个文件，模块文件名通常以.py结尾.
+
+  作用:
+    让一些相关的数据，函数，类等有逻辑的组织在一起，使逻辑结构更加清晰
+    模块中的数据,函数，类等可提供给其它模块或程序使用
+
+  模块的分类:
+    内建模块(builtins) 在解析器的内可以直接使用
+    标准库模块, 安装python时已安装且可以直接使用
+    第三方模块(通常开源),需要自己安装
+    用户自己编写的模块(可以作为其它人的第三方模块)
+
+模块的导入语句
+import 语句
+  语法:
+    import 模块名1 [as 模块新名1], 模块名2 [as 模块新名2], ....
+  示例:
+    import math  # 导入math模块 
+    import sys, os
+  作用:
+    将某模块整体导入到当前模块中
+
+  用法:
+    模块名.属性名
+    或
+    模块名.函数属性名(实参传参)
+  如:
+    math.factorial(5)
+
+  dir(obj) 函数返回所有属性的字符串列表
+  help(obj) 函数可以查看模块的相关文档字符串
+
+
+
+from import 语句
+  语法:
+    from 模块名 import 模块属性名1 [as 属性新名1], 模块属性名2 [as 属性新名2], ....
+  作用:
+    将某模块的一个或多个属性导入到当前模块的作用域
+  示例:
+    from math import factorial as fac
+    from math import sin
+    from math import pi
+    print(fac(5))  # 120
+
+
+from import * 语句
+  语法:
+    from 模块名 import *
+  作用:
+    将某模块的所有属性导入到当前模块
+  示例:
+    from math import *
+    print(sin(pi/2)) 
+    print(factorial(5))
+
+
+dir 函数:
+  dir([对象])  返回一个字符串的列表
+
+  说明:
+    如果没有给参数调用，则返回当前作用域内的所有变量的列表
+    如果给定一个对象为作参数，则返回这个对象的所有变量的列表
+       1) 对于一个模块，返回这个模块的全部属性
+       2) 对于一个类，返回这个类的所有变量，并递归基类对象的所有变量
+       3) 对于其它的对象，返回所有类变量和基类变量
+
+
+内建 模块
+
+math 模块
+  模块名 math
+  详见:
+    python_base_docs_html/数学模块math.html
+
+
+时间模块 time
+  模块名: time
+
+  详见:
+    python_base_docs_html/时间模块time.html
+
+练习:
+  写一个程序，输入你的出生日期，
+    1) 算出你已经出生多少天?
+    2) 算出你出生的那天是星期几?
+
+
+系统模块 sys
+  文档参见:
+    python_base_docs_html/系统模块sys.html
+自定义模块并导入
+  示例见:
+    mymod.py  # 自定义模块
+    test_mymod.py  # 主模块，用于使用mymod模块
+  注意事项： 
+    自定义模块的文件要求以.py结尾，文件名必须是标识符的规则
+
+
+导入 语句 import 语句等 搜索块的路径顺序
+
+  import mymod
+  from mymod import myfac
+  from mymod import *
+    去哪儿找这个mymod.py?
+  搜索顺序:
+    1. 搜索程序运行时的路径(当前路径)
+    2. sys.path 提供的路径
+        sys.path是一个列表，里面放的都是模块的搜索路径
+    3. 搜索内建模块
+  
+模块的加载过程:
+  1. 在模块导入时，模块的所有语句都会执行
+  2. 如果一个模块已经导入，则再次导入时不会重新执行模块内的语句
+
+
+模块的重新加载
+  import mymod
+  import imp
+  imp.reload(mymod)  # 重新加载mymod模块
+
+模块以导入和执行的过程:
+  1. 先搜索相关的路径，找到模块名.py
+  2. 判断是否有此模块对应的.pyc文件。如果.pyc比.py文件新,则直接加载.pyc文件
+  3. 否则 用模块.py,文件生成.pyc，并加载执行
+
+pyc python的编译
+             编译                 解释执行
+  mymod.py  --------> mymod.pyc  --------> python3
+
+模块的文档字符串:
+  模块内第一个没有赋值给任何变量的字符中称为模块的文档字符串
+
+  模块的 __doc__ 属性
+    此属性用于绑定模块的文档字符串
+
+  模块的 __file__属性
+    此属性用于记录模块对应的文件路径名
+
+  示例见:
+    mymod2.py
+
+  模块的 __name__属性 
+    __name__属性 用来记录模块自身名字
+
+    作用:
+      1. 记录模块名
+      2. 用来判断是否为主模块
+    说明:
+      当此模块为主模块(也就是第一个运行的模块时)运行时, __name__绑定 '__main__'
+      当此模块不是主模块时,而是被其它模块导入时，此时 __name__ 绑定模块名
+    示例见:
+      mymod3.py
+
+
+
+模块的 __all__列表
+  模块中的 __all__列表是一个用来存放可导出属性的字符串列表
+
+  作用:
+    当用 from xxx import *语句导入时，只导入 __all__ 列表内的属性
+
+  示例见:
+    mymod4.py
+
+模块的隐藏属性
+  模块中以'_'开头的属性，在from xxx import * 导入时，将不被导入，通常称这些属性为隐藏属性
+
+  示例见:
+    mymod5.py
+
+
+随机模块 random
+  模块名: random
+    作用:
+      用于模拟或生成随机输出的模块
+
+  文档参见:
+    python_base_docs_html/随机模块random.html
+包(模块包) package
+  包的定义
+    包是将模块以文件夹的组织形式进行分组管理的管理方法
+  作用:
+    将一系列模块进行分类管理，有利于防止命名冲突
+    可以在需要时加载一个或部分模块则不是全部模块
+  包示例:
+    mypack/
+        __init__.py
+        menu.py
+        games/
+            __init__.py
+            contra.py
+            supermario.py
+            tanks.py
+        office/
+            __init__.py
+            word.py
+            excel.py
+            powerpoint.py
+
+
+
+
+__init__.py 文件
+  __init__.py是常规包内必须存在的文件
+  __init__.py会在包加载时自动调用
+
+  作用:
+    1. 编写此包的内容
+    2. 在内部填写文档字符串
+    3. 在__init__.py文件内可以加载此包所依懒的一些其它模块
+
+包的导入
+  同模块的导入规则
+  # import 语句
+  import 包名 [as 包新名]
+  import 包名.模块名 [as 模块新名]
+  import 包名.子包名.模块名 [as 模块新名]
+
+  # from import语句
+  from 包名 import 模块名 [as 模块新名]
+  from 包名.子包名 import 模块名 [as 模块新名]
+  from 包名.子包名.模块名 import 属性名 [as 属性新名]
+
+  # from import *语句
+  from 包名 import *
+  from 包名.模块名 import *
+  ...
+
+
+导入包时的索引路径顺序:
+  1. 搜索程序的当前路径 
+  2. sys.path 提供的路径
+
+
+__init__.py内的 __all__ 列表
+  作用:
+    用来记录此包中有哪儿些子包或模块在用from import *语句 时被导入
+  说明:
+    __all__列表只对 from xxx import *语句起作用
+  示例见:
+    mypack/games/__init__.py
+
+
+包的相对导入:
+  包的相对导入是指包内模块的相互导入
+
+  语法:
+    from 相对路径包或模块 import 属性或模块名
+    from 相对路径包或模块 import *
+  相对路径
+    . 代表当前目录
+    .. 代表上一级目录
+    ... 代表上二级目录
+    .... 以此类推
+    注: 相对导入时不能超出包的外部
+day14笔记
+
+异常(基础) except
+  什么是错误
+    错误是指由于逻辑或语法等导致一个程序已无法正常执行的问题
+
+  什么是异常
+    异常是程序出错时标识的一种状态
+    当异常发生时，程序不会再向下执行，而转去调用此函数的地方待处理此错误并恢复为正常状态
+
+  异常作用:
+    用作信号，通知上层调用者有错误产生需要处理
+
+
+try 语句:
+  两种语法:
+    try-except语句
+    try-finally语句
+  
+  try-except语句语法:
+    try:
+        可能触发异常的语句
+    except 错误类型1 [as 变量1]:
+        异常处理语句1
+    except 错误类型2 [as 变量2]:
+        异常处理语句2
+    except (错误类型3,错误类型4, ....) [as 变量3]
+        异常处理语句3
+    ...
+    except:
+        异常处理语句(其它)
+    else:
+        末发生异常语句
+    finally:
+        最终语句
+  作用:
+    偿式捕获异常，将程序由异常状态转为正常状态并正常执行
+
+  示例见:
+    try-except.py
+
+  try-except语句说明:
+    1. as 子句是用于绑定错误对象的变量,可以省略
+    2. except 子句可以有一个或多个,但至少要有一个
+    3. else子句最多只能有一个,也可以省略不写
+    4. finally子句最多只能有一个,也可以省略不写
+    5. else子句的语句将在此try语句没有发生异常时被执行
+    6. finally子句的语句在任何情况下都会被执行
+python中全部的错误类型:
+    参见文档:
+      python_base_docs_html/Python全部的异常类型.html
+
+
+
+
+
+try-finally 语句
+  语法:
+    try:
+        可能触发异常的语句
+    finally:
+        最终语句
+
+  说明:
+    1. finally 子句不可以省略
+    2. 一定不存在except子句
+
+  作用:
+    通常用try-finally语句来做触发异常时必须要处理的事情
+    无论异常是否发生,finally子句都会被执行
+  注意:
+    try-finally 语句不会改变程序的(正常/异常)状态
+  示例见:
+    try_finally.py
+
+
+
+
+
+
+raise 语句
+  作用:
+    触发一个错误,让程序进入异常状态
+    发送错误通知给调用者
+  语法:
+    raise 异常类型
+    或
+    raise 异常对象
+  示例见:
+    raise.py
+
+assert 语句(断言语句)
+  语法:
+    assert 真值表达式, 错误数据(通常是字符串)
+
+  作用:
+    当真值表达式为False时,用错误数据创建一个AssertionError类型的错误,并进入异常状态
+
+  等同于:
+    if 真值表达式 == False
+       raise AssertionError(错误数据)
+  示例见:
+    assert.py
+  
+
+小结:
+  异常处理语句(四条):
+    try-except 语句:
+        用于接收异常通知,捕获异常
+    try-finally 语句:
+        执行必须要执行的语句
+    raise 语句
+        发送异常知通,并进入异常状态
+    assert 语句
+        根据条件选择性的发送AssertionError类型的异常通知
+
+
+
+为什么要异常处理机制:
+  在程序调用层数较深时,向主调函数传递错误信息需要层层return 返回比较麻烦,用异常处理机制可以较简单的传送错误信息
+
+示意代码见:
+  exception.pyday15 笔记:
+迭代器 Iterator
+
+什么是迭代器
+  迭代器是访问可迭代对象的工具
+  迭代器是指用iter(obj) 函数返回的对象(实例)
+  迭代器可以用next(it) 函数获取可迭代对象的数据
+
+迭代器函数iter和next
+  iter(iterable) 从可迭代对象中返回一个迭代器,iterable 必须是能提供一个迭代器的对象
+  next(iterator) 从迭代器iterator中获取下一个记录,如果无法获取下一条记录,则触发StopIteration异常
+
+  说明:
+    迭代器只能向前取值,不会后退
+    用iter函数可以返回一个可迭代对象的迭代器
+  作用:
+    迭代器对象能用next函数获取下一个元素.
+
+  示例:
+    L = [2, 3, 5, 7]
+    it = iter(L)  # 用L对象返回能访问L的迭代器, it绑定迭代器
+    next(it)  # 2
+    next(it)  # 3
+    next(it)  # 5
+    next(it)  # 7
+    next(it)  # StopIteration 通知(没有数据)
+
+    it = iter(range(1, 10, 30))
+    next(it)  # 1
+    next(it)  # 4
+    next(it)  # 7
+    next(it)  # StopIteration
+
+
+  用迭代器访问可迭代对象示例见:
+    iterator.py
+生成器 Generator (python 2.5及之后)
+什么是生成器:
+  生成器是能够动态提供数据的对象,生成器对象也是可迭代对象(实例)
+
+生成器有两种:
+  1. 生成器函数
+  2. 生成器表达式
+
+生成器函数的定义
+  含有yield语句的函数是生成器函数,此函数被调用将返回一个生成器对象
+  yield 翻译为(产生或生成)
+
+yield 语句
+  语法:
+    yield 表达式
+  说明:
+    yield 用于 def 函数中,目的是将此函数作用生成器函数使用
+    yield 用来生成数据,供迭代器的next(it) 函数使用
+  示例见:
+    myyield.py
+
+生成器函数说明:
+  生成器函数的调用将返回一个生成器对象,生成器对象是一个可迭代对象
+  在生成器函数调用return 会触发一个StopIteration异常
+
+  生成器函数的使用示例见:
+    myinteger.py
+生成器表达式:
+  语法:
+    (表达式 for 变量 in 可迭代对象 [if 真值表达式 ])
+  说明:
+    if 子句可以省略
+  作用:
+    用推导式的形式创建一个新的生成器
+  示例:
+    gen = (x ** 2 for x in range(1, 5))
+    it = iter(gen)
+    next(it)  # 1
+    next(it)  # 4
+    next(it)  # 9
+    next(it)  # 16
+    next(it)  # StopIteration
+思考:
+   L = [2, 3, 5, 7]
+   L2 = [x ** 2 for x in L]  # 列表推导式
+   it = iter(L2)
+   print(next(it))  # 4
+   L[1] = 10
+   print(next(it))  # 9
+
+   L = [2, 3, 5, 7]
+   G3 = (x ** 2 for x in L)  # 生成器表达式
+   it = iter(G3)
+   print(next(it))  # 4
+   L[1] = 10
+   print(next(it))  # 100
+
+迭代工具函数
+  迭代工具函数的作用是生成一个个性化的可迭代对象
+
+函数:
+  zip(iter1[, iter2[, ...]])  返回一个zip对象,此对象用于生成元组,此元组的个数由最小的可迭代对象决定
+
+  enumerate(iterable[, start]) 生成带索引的枚举对象,返回迭代类型为索引-值对(index-value对),默认索引从零开始,也可以用start指定
+
+示例:
+  numbers = [10086, 10000, 10010, 9558]
+  names = ['中国移动', '中国电信', '中国联通']
+
+  for t in zip(numbers, names):
+      print(t)
+
+  for x, y in zip(numbers, names):
+      print(y, '的客服电话是:', x)
+
+  x, y = (10086, '中国移动') # 序列赋值 
+
+zip函数的实现示例2:
+  def myzip(iter1, iter2):
+      it1 = iter(iter1)  # 拿出一个迭代器
+      it2 = iter(iter2)
+      while True:
+          a = next(it1)
+          b = next(it2)
+          yield (a, b)
+  for t in myzip(numbers, names): #能实现与zip同样的功能
+      print(t)
+
+
+enumerate 示例:
+    names = ['中国移动', '中国电信', '中国联通']
+    for t in enumerate(names):
+        print(t)
+
+enumerate 实现方法示意:
+    def myenum(iterable):
+        it = iter(iterable)
+        i = 0
+        while True:
+            a = next(it)
+            yield (i, a)
+            i += 1
+字节串和字节数组
+字节串bytes (也叫字节序列)
+  作用:
+    存储以字节为单位的数据
+    字节串是不可变的字节序列
+
+字节:
+  字节是由8个位(bit)组成的数据单位,是计算机进行数据管理的单位
+  字节是用 0 ~ 255 范围内的整数表示的
+
+创建空字节串的字面值
+   B = b''
+   B = b""
+   B = b''''''
+   B = b""""""
+
+创建非空字节串的字面值
+  B = b'ABCD'
+  B = b"ABCD"
+  B = b'\x41\x42'
+
+字节串的构造函数 bytes
+  bytes()  生成一个空的字节串 等同于 b''
+  bytes(整数可迭代对象) # 用可迭代对象初始化一个字节串
+  bytes(整数n)  生成n个值为0的字节串
+  bytes(字符串, encoding='utf-8')  用字符串转为编码生成一个字节串
+
+  示例:
+    b = bytes()  # b = b''
+    b = bytes(range(65, 69))  # b = b'ABCD'
+    b = bytes(5)  # b = b'\x00\x00\x00\x00\x00'
+    b = bytes('abc中文') # b=b'ABC\xe4\xb8\xad\xe6\x96\x87'
+
+bytes 的运算:
+  + += * *= 
+  < <= > >= == !=
+  in / not in 
+  索引和切片
+
+  len(x)
+  max(x)
+  min(x)
+  sum(x)
+  any(x)
+  all(x)
+
+
+bytes 和 str 的区别:
+  bytes 存储字节( 通常值在 range(0, 256))
+  str 存储unicode字符( 通常值在0~65535)
+
+
+bytes 与 str 的转换
+       编码(encode)
+   str ------------> bytes
+      b = s.encode(encoding='utf-8')
+
+          解码(decode)
+   bytes  ----------> str
+      s = b.decode(encoding='utf-8')
+
+字节数组 bytearray
+  可变的字节序列
+
+字节数组的构造函数: bytearray
+  bytearray()   创建空的字节数组
+  bytearray(整数)   用可迭代对象初始化一个字节数组
+  bytearray(整型可迭代对象)  生成n个值为0的字节数组
+  bytearray(字符串, encoding='utf-8')  用字符串的转换编码生成一个字节数组
+
+bytearray 的运算:
+  + += * *= 
+  < <= > >= == !=
+  in / not in 
+  索引和切片
+  (字节数组支持索引和切片的赋值操作,规则同列表的索引和切片赋值规则)
+
+  例:
+    ba = bytearray(b'aBCDEfG')
+    ba[0] = 65
+    ba[-2] = 70
+
+bytearray的方法:
+  BA.clear() 清空
+  BA.append(n) 追加一个字节(n为0~255的整数)
+  BA.remove(value) 删除第一个出现的字节,如果没有出现，则触发ValueError错误
+  BA.reverse()  字节顺序反转
+  BA.decode(encoding='utf-8')  # 解码为字符串
+  BA.find(sub[, start[,end]])  # 查找 sub
+
+问题:
+  如何长期保存计算机中的数据
+  　　需要用文件操作
+
+文件　File 
+  文件是用于数据存储和单位
+  文件通常用来长期存储数据
+  文件中的数据是以字节为单位进行顺序存储的
+
+
+
+文件的操作流程:
+  1. 打开文件
+  2. 读/写文件
+  3. 关闭文件
+  注:
+    任何的操作系统，一个应用程序同时打开文件的数量有最大数限制
+
+文件的打开函数
+  open(file, mode='rt')  用于打开一个文件，返回此文件流对象,如果打开文件失败，则会触发OSError错误
+
+文件的关闭方法:
+  F.close()   # 关闭文件，释放系统资源
+
+  示例见:
+    file_open.py
+
+文本文件操作
+  操作模式:
+     't'
+  说明：
+  　　1. 默认文件中存储的都为字符数据，在读写过程中会自动进行编解码操作，
+  　　2. 文本文件以行为单位进行分隔，在python内部统一用'\n'作用为换行符进行分隔
+  　　3. 对文本文件的读写操作需要用字符串(str) 进行数据操作
+
+  各操作系统的换行符
+    Linux换行符: '\n'
+    Windows 换行符: '\r\n'
+    新的Mac OS 换行符: '\n'
+    旧的Macintosh换行符: '\r'(已不用了)
+文件流对象是可迭代对象，迭代过程中将以换行符'\n'作为分隔符
+　　示例:
+    f = open('phonenumber.txt')
+    for line in f:
+        print(line)  # 打印每一行的数据
+
+标准输入输出文件:
+  sys.stdin  　　　标准输入文件
+                    ctrl+d 输入文件结束符
+  sys.stdout    标准输出文件
+  sys.stderr    标准错误输出文件
+  　　模块名：sys 
+  注:
+    标准文件不需要打开和关闭就可以使用
+  示例见:
+    stdin.py
+    stdin2.py
+    stdout.py
+    stderr.py
+
+二进制文件操作:
+  二进制文件操作模式字符: 'b'
+
+  默认文件中存储的是以字节为单位数据,通常有人为规定的格式
+  二进制文件操作需要用字节串进行读写
+
+F.read() / F.readline() / F.readlines() 返回类型
+  对于文本文件,F.read()等函数返回为字符串(str)
+  对于二进制文件,F.read()等函数返回为字节串(bytes)
+
+F.write() 对于二进制文件与需要用字节串进行操作
+
+
+F.tell方法:
+  作用:
+    返回当前的读写位置(从文件头以字节为单位)
+
+F.seek方法
+  作用:
+    设置读写位置
+
+  F.seek(偏移量, whence=相对位置)
+    偏移量
+       大于0的数代表向文件末尾方向移动的字节数
+       小于0的数代表向文件头方向中移动的字节数
+    相对位置
+       0 代表从文件头开始偏移
+       1 代表从文件当前读写位置开始偏移
+       2 代表从文件尾开始偏移
+  示例见:
+    seek.py
+
+
+汉字编码(只讲两种)
+  国标系列:
+    GB18030 (二字节或四字节编码, 共27533个字)
+      GBK (二字节编码, 共21003个字)
+        GB2312 (二字节编码,共6763个汉字)
+    (Windows常用)
+  国际标准: UNICODE <---> UTF-8
+    (Linux / Mac OS X / IOS / Android 等常用)
+
+问题:
+  十个汉字占多少个字节
+      UTF-8: 30个字节
+
+python编码字符串:
+  'gb2312'
+  'gbk'
+  'gb18030'
+  'utf-8'
+  'ascii'
+  ...
+  以上字符串用于encode和 decode中
+
+编码注释:
+  在python源文件的第一行或第二行写入如下内容:
+    # -*- coding:gbk -*-
+    # 设置源文件编码格式为gbk
+  或
+    # -*- coding:utf-8 -*-
+    # 设置源文件编码格式为utf-8
+  作用:
+    告诉解释执行器,此前文件的编码是什么?
+
+day17笔记:
+面向过程编程:
+   函数做单位
+
+面向对象编程 Ojbect-Oriented Programing
+  什么是对象:
+    对象是指现实中的物体过实体
+
+  对象有什么特征:
+    对象有很多属性(名词,形容词)
+      姓名,年龄,性别
+    对象有很多行为(动作,动词)
+      学习,吃饭,睡觉,踢球,工作,借钱
+
+  面向对象
+    把一切都看成对象(实例) 用各种对象之间的关系来描述事务
+  
+  什么是类:
+    拥有相同属性和行为的对象分为一组,即为一个类
+    类是用来描述对象的工具,用类可以创建此类的对象(实例)
+ 
+  面向对象示意:
+    车(类)  ------> BYD E5(京A.88888)  实例(对象)
+            \
+             \---> BMW X5 (京B.00000) 实例(对象)
+
+    狗(类)  ------> 小京巴(户籍号: 000001)
+            \
+             \----> 导盲犬(户籍号: 000002)
+
+    int(类)  ----> 100 (对象)
+            \
+             \---> 200 (对象,实例)
+
+
+类的创建语句:
+  class 类名(继承列表):
+      '类的文档字符串' 
+      实例方法的定义
+      类变量的定义
+      类方法的定义(@classmethod)
+      静态方法的定义(@staticmethod)
+  作用:
+    创建一个类
+    类用于描述对象的行为和属性
+    类用于创建此类的一个或多个对象(实例)
+  说明:
+    类名必须为标识符
+    类名实质上就是变量, 它绑定一个类
+
+  示例见:
+    class.py
+
+构造函数
+  构造函数的调用表达式
+  语法:
+    类名([创建传参列表])
+
+  作用:
+    创建这个类的实例对象,并返回此实例的引用关系
+  示例见:
+    constructor.py
+
+实例对象说明:
+  1. 实例有自己的作用域和名字空间,可以为该类的对象添加实例变量(也叫属性)
+  2. 实例可以调用类方法和实例方法
+  3. 实例可以访问类变量和实例变量
+
+
+
+实例方法 method
+  语法:
+    class 类名(继承列表):
+        def 实例方法名(self, 参数1, 参数2, ...):
+            '文档字符串'
+            语句
+  作用:
+    用于描述一个对象的行为,让此类型的全部对象都拥有相同的行为
+  说明:
+    1. 实例方法实质是函数,是定义在类内的函数
+    2. 实例方法至少有一个形参有,第一个形参代表调用这个方法的实例,一般命名为 'self'
+
+实例方法的调用语法:
+  实例.实例方法名(调用传参)
+  或
+  类名.实例方法名(实例,调用传参)
+
+  示例见:
+    instance_method.py
+
+
+
+实例属性 attribute(也叫实例变量)
+  每个实例对象可以有自己的变量,称为实例变量(也叫属性)
+
+  语法:
+    实例.属性名
+
+  赋值规则:
+    首次为属性赋值则创建此属性
+    再次为属性赋值则修改属性的绑定关系
+  作用:
+    记录每个对象自身的数据
+
+  示例见:
+    attribute.py
+删除属性 del 语句
+
+  del 对象.实例变量名
+
+ 例如:
+    class Dog:
+        pass
+    dog1 = Dog()
+    dog1.color = "白色"
+    del dog1.color  # 删除 
+
+del 语句
+  del 变量名          删除变量
+  del 列表[整数表达式] 删除列表中的元素
+  del 字典[键]        删除字典中的键
+  del 对象.属性       删除对象的属性
+
+初始化方法:
+  作用:
+    对新创建的对象添加属性
+  语法:
+    class 类名(继承列表):
+        def __init__(self [, 形参列表]):
+            语句块
+
+    [] 代表中的内容可省略
+  说明:
+    1. 实始化方法名必须为 '__init__' 不可改变
+    2. 初始化方法会在构造函数创建实例后自动调用.且将实例自身通过第一个参数self 传入 __init__ 方法
+    3. 构造函数的实参将通过__init__方法的参数列表传入到 '__init__' 方法中
+    4. 初始化方法内如果需要return 语句返回,则只能返回None
+  示例见:
+    init_method.py
+析构方法:
+  语法:
+    class 类名:
+        def __del__(self):
+            ...
+  说明:
+    析构方法在对象被销毁时被自动调用
+    python建议不要在对象销毁时做任何事情,因为销毁的时间难以确定
+  示例见:
+    del_method.py
+
+预置实例属性
+  __dict__ 属性
+    __dict__ 属性绑定一个存储此实例自身变量的字典
+
+  示例:
+    class Dog:
+        pass
+
+    dog1 = Dog()
+    print(dog1.__dict__)  # {}
+    dog1.kinds = '京巴'
+    print(dog1.__dict__)  # {'kinds': '京巴'}
+
+__class__ 属性
+    此属性用于绑定创建些实例的类
+
+  作用:
+    可以借助于此属性来访问创建此实例的类
+  示例:
+    class Dog:
+        pass
+    dog1 = Dog()
+    print(dog1.__class__)
+    dog2 = dog1.__class__()
+    print(dog2.__class__)
+
+
+
+面向对向的综合示例:
+  有两个人(Human):
+    1.
+      姓名: 张三
+      年龄: 35
+    2.
+      姓名: 李四
+      年龄: 8
+    行为:
+      1. 教别人学东西 teach
+      2. 赚钱 works
+      3. 借钱 borrow
+    事情:
+      张三 教 李四 学 python
+      李四 教 张三 学 跳皮筋
+      张三 上班赚了 1000 元钱
+      李四 向 张三 借了 200 元钱
+      打印张三的信息: 35岁 的 张三 有钱 800元, 它学会跳皮筋
+      打印李四的信息: 8岁 的 李四 有钱 200元, 它学会python
+
+
+用于类的函数:
+  isinstance(obj, class_or_tuple)  返回这个对象obj是否是某个类的对象或某些类中的一个类的对象,如果是则返回True,否则返回False
+  type(obj)  返回对象的类型
+
+day18笔记:
+类变量
+  类变量是类的属性,此属性属于类,不属于此类的实例
+
+  作用:
+    通常用来存储该类创建的对象的共有属性
+  说明:
+    类变量可以通过该类直接访问
+    类变量可以通过类的实例直接访问
+    类变量可以通过此类的对象的__class__属性间接访问
+  示例见:
+    class_variable.py
+
+类的文档字符串
+  类内第一个没有赋值给任何变量的字符串为类的文档字符串
+  类的文档字符串可以用类的 __doc__属性访问
+
+  class Dog:
+      '''这是一种小动物'''
+
+  >>> help(Dog)  # 查看文档字符串
+  print(Dog.__doc__)  # 类的__doc__属性用来绑定文档字符串
+
+
+类的 __slots__ 列表
+  作用:
+    限定一个类创建的实例只能有固定的属性(实例变量)
+    不允许对象添加列表以外的属性(实例变量)
+    防止用户因错写属性的名称而发生程序错误
+  说明:
+    1. __slots__列表绑定一个字符串列表
+    2. 含有__slots__列表的类所创建 的实例对象没有__dict__属性,即此实例不用字典来存储对象的属性(实例变量)
+
+  示例见:
+    slots.py
+
+
+
+
+
+
+类方法 @classmethod
+  类方法是用于描述类的行为的方法,类方法属于类,不属于类的实例
+
+  说明:
+    类方法需要使用@classmethod装饰器定义
+    类方法至少有一个形参,第一个形参用于绑定类,约定写为'cls'
+    类和该类的实例都可以调用类方法
+    类方法不能访问此类创建的实例的属性
+  示例见:
+    class_method.py
+
+静态方法 @staticmethod
+  静态方法是定义在类内部的函数,此函数的作用域是类的内部
+
+  说明:
+    静态方法需要使用 @staticmethod装饰器定义
+    静态方法与普通函数定义相同,不需要传入self实例参数和cls参数
+    静态方法只能凭借该类或类创建的实例调用
+    静态方法不能访问类变量和实例变量(属性)
+  示例见:
+    static_method.py
+
+实例方法, 类方法, 静态方法, 函数 小结
+  不想访问 类内 和 实例内 的变量,用静态方法
+  只想访问类内变量,不想访问实例变量,用类方法
+  即要访问内变量,也想访问实例变量用实例方法
+  函数与静态方法相同,只是静态方式的作用域定义在类内
+继承 inheritance / 派生 derived
+  什么继承/派生
+    继承是指从已有的类中派生出新的类,新类具有原类的行为,并能扩展新的行为
+    派生类就是从一个已有类中衍生成新类,在新类上可以添加新的属性和行为
+  作用:
+    1.用继承派生机制,可以将一些共有功能加在基类中,实现代码的共享
+    2.在不改变基类的代码的基础上改变原有的功能
+  名语:
+    基类(base class) /超类(super class)/ 父类(father class)
+    派生类(derived class) / 子类(child class)
+
+
+单继承:
+  语法:
+    class 类名(基类名):
+       语句块
+  说明:
+    单继承是指由一个基类衍生出新的类
+  示例见:
+    inherit.py
+
+
+继承说明:
+  python3 任何类都直接或间接的继承自object类
+  object 类是一切类的超类
+
+类的__base__属性
+  __base__属性用来记录此类的基类
+
+python内建的类详见:
+   >>> help(__builtins__)
+
+覆盖 override
+  覆盖是指在有继承关系的类中,子类中实现了与基类同名的方法,在子类的实例调用该方法时,实际调用的是子类中的覆盖版本,这种现象叫做覆盖
+
+  示例见:
+    override.py
+
+
+
+子类对象显式调用基类(被覆盖)方法的方式:
+  基类名.方法名(实例, 实际调用传参)
+
+
+super 函数
+  super(cls, obj) 返回绑定超类的实例(要求obj必须是cls类型的实例)
+  super()  返回绑定超类的实例,等同于: super(__class__, 实例方法的第一个参数), 必须在方法内调用
+
+  作用:
+    借助super() 返回的实例间接调用其父类的覆盖方法
+
+
+
+显式调用基类的初始化方法
+  当子类中实现了 __init__ 方法,基类的构造方法并不会被调用
+  def __init__(self, ...)
+
+  示例见:
+    super_init.py
+
+
+思考:
+   list类里只有一个append向末尾加一个元素的方法,但没有向列表头部添加元素的方法,试想能否为列表在不改变原有类的基础上添加一个insert_head(n) 方法,实现在列表的头部(前部)添加元素
+  如:
+    class MyList(list):
+        def insert_head(self, n):
+            ...  # 需要自己添加代表
+
+    myl = MyList(range(3, 6))
+    print(myl)  # [3, 4, 5]
+    myl.insert_head(2)
+    print(myl)  # [2, 3, 4, 5]
+    myl.append(6)
+    print(myl)  # [2, 3, 4, 5, 6]
+day19笔记
+用于类的函数
+  issubclass(cls, class_or_tuple) 判断一个类是否继承自其它类,如果此cls 是class 或tuple中的一个派生子类,则返回True, 否则返回False
+
+示例:
+  class A:
+      pass
+
+  class B(A):
+      pass
+
+  class C(B):
+      pass
+
+  issubclass(C, B)  # True
+  issubclass(B, C)  # False
+  issubclass(C, (int, str))  # False
+  issubclass(C, (int, B, str))  # True
+
+
+封装 enclosure
+  封装是指隐藏类的实现细节,让使用者不关心这些细节
+  封装的目的是让使用者通过尽可能少的方法(或属性)操作对象
+
+
+私有属性和方法
+  python类中以双下划线('__') 开头,不以双下划线结尾的标识符为私有成员,私有成员或只能用类内的方法进行访问和修改
+    以__开头的实例变量有私有属性
+    以__开头的方法为私有方法
+  示例见:
+    enclosure.py
+
+
+
+多态 polymorphic
+  什么是多态:
+    字面意思: 多种状态
+    多态是指在有继承/派生关系的类中,调用基类对象的方法,实际能调用子类的覆盖方法的现象叫多态
+
+  状态:
+    静态(编译时状态)
+    动态(运行时状态)
+  说明:
+    多态调用方法与对象相关,不与类相关
+    Python的全部对象都只有"运行时状态(动态)", 没有"C++语言"里的"编译时状态(静态)"
+  示例:
+   poly.py
+
+
+
+
+
+面向对象的语言的特征:
+  继承
+  封装
+  多态
+
+多继承 multiple inheritance
+  多继承是指一个子类继承自两个或两个以上的基类
+语法:
+  class 类名(基类名1, 基类名2, ...):
+      ...
+说明:
+  1. 一个子类同时继承自多个父类,父类中的方法可以同时被继承下来
+  2. 如果两个父类中有同名的方法,而在子类中又没有覆盖此方法时,调用结果难以确定
+
+示例见:
+  multi_inherit.py
+
+多继承的问题(缺陷)
+  标识符(名字空间)冲突的问题
+    要谨慎使用继承
+  示例见:
+    multi_inherit2.py
+
+
+多继承的 MRO (Method Resolution Order) 问题
+  类的 __mro__ 属性
+    此属性用来记录类的方法查找顺序
+    
+
+  示例见:
+    mro.py
+函数重写
+  在自定义类内添加相应的方法,让自定义类创建的实例能像内建对象一样进行内建函数操作
+
+对象转字符串函数:
+  repr(obj)  返回一个能代表此对象的表达式字符串,通常
+      eval(repr(obj)) == obj  (这个字符串通常是给python解释执行器运行用的)
+
+  str(obj)  通过给定的对象返回一个字符串(这个字符串通常是给人阅读的)
+
+
+对象转字符串函数的重写方法
+  repr(obj) 函数的重写方法:
+      def __repr__(self):
+
+  str(obj) 函数的重写方法:
+      def __str__(self):
+
+  说明:
+    1. str(obj) 函数先查找, obj.__str__()方法,调用此方法并返回结果
+    2. 如果没有obj.__str__()方法时,则返回obj.__repr__()方法的结果并返回
+    3. 如果obj.__repr__方法不存在,则调用object类的__repr__实例方法显示<__main__.XXXX object at 0xAABBCCDD>格式的字符串
+  示例见:
+    mynumber.py
+
+其它内建函数的重写方法:
+  __abs__       abs(obj)  函数
+  __len__       len(obj)  函数(必须返回整数)
+  __reversed__  reversed(obj) 函数(必须返回可迭代对象
+  __round__     round(obj)  函数
+
+示例见:
+  myinteger.py
+
+
+
+数值转换函数的重写
+  __complex__  complex(obj) 函数
+  __int__      int(obj) 函数
+  __float__    float(obj) 函数
+  __bool__     bool(obj) 函数
+
+示例见:
+  mynumber3.py
+
+
+布尔测试函数重写
+  格式:
+    __bool__
+  作用:
+    用于bool(obj)　函数取值
+    用于if语句的真值表达式中
+    用于while 语句的真值表达式中
+  说明:
+    1. 当自定义的类内有 __bool__(self) 方法时，以此方法的返回值作为bool(obj) 的返回值
+    2. 当不存在__bool__(self) 方法时，bool(x) 返回__len__(self) 方法的返回值是否为零来测试布尔值
+    3. 当不存在__len__(self) 方法时，则直接返回True
+  示例见:
+    bool.py
+
+
+迭代器(高级)
+
+什么是迭代器
+  可以通过next(it)函数取值的对象就是迭代器
+
+迭代器协议
+  迭代器协议是指对象能够使用next函数获取下一项数据，在没有下一项数据时触发一个StopIteration异常来终止迭代的约定
+
+迭代器协议实现方法:
+  __next__(self) 方法来实现迭代器协议
+
+语法形式:
+  class MyIterator:
+      def __next__(self):
+          迭代器协议
+          return 数据
+什么是可迭代对象:
+  是指能用iter(obj) 函数返回迭代器的对象(实例)
+  可迭代对象内部需要定义__iter__(self)　方法来返回迭代器对象
+  
+day20笔记
+对象的属性管理函数:
+   getattr(obj, name[,default]) 从一个对象得到对象的属性;getattr(x,'y') 等同于x.y,当属性不存在时,如果给出default参数则返回defualt, 如果没有给出default,则产生一个AttributeError错误
+
+   hasattr(obj, name)  用给定的name返回对象obj是否有此属性,此种做法可以避免在getattr(obj,name) 时引发错误
+
+   setattr(obj, name, value) 给对象obj的名为name的属性设置相应的值value; set(x, 'y', z) 等同于 x.y = z
+
+   delattr(obj, name) 删除对象obj中的name属性,delattr(x, 'y') 等同于 del x.y
+
+示例:
+    class Dog:
+        pass
+    d = Dog()
+    d.color = '白色'
+    v = getattr(d, 'color')   # 等同于 v = d.color
+    v = getattr(d, 'kinds')  # 出错,没有d.kinds属性
+    v = getattr(d, 'kinds', '没有这个属性')  # v= '没有这个属性'
+    hasattr(d, 'color')  # True
+    hasattr(d, 'kinds')  # False
+    setattr(d, 'kinds', '京巴')  # 等同于d.kinds ='京巴'
+    hasattr(d, 'kinds')  # True
+    delattr(d, 'kinds')  # 等同于 del d.kinds
+    hasattr(d, 'kinds')  # False
+
+
+
+
+异常(高级)
+  可以用于异常的语句:
+    try-except  # 捕获异常,得到异常通知
+    try-finally  # 做任何流程(正常流程/异常流程)都必须要执行的语句
+    raise  # 发送异常通知
+    assert  # 根据条件发送异常通知
+
+with 语句
+  语法:
+    with 表达式1 [as 变量1], 表达式2 [as 变量2], ...:
+        语句块
+  作用:
+    使用于对资源进行访问的场合,确保使用过程中不管是否发生异常都会执行必要的'清理操作',并释放资源
+      (如:文件使用后自动关闭,线程中锁的自动获取和释放等)
+  说明:
+    执行表达式 as子句中的变量绑定生成的对象
+    with语句并不改变异常的状态
+  示例见:
+    with.py
+  
+
+环境管理器
+  类内有__enter__ 和 __exit__实例方法的类被称为环境管理器
+  能够用with进行管理的对象必须是环境管理器
+
+  说明:
+    __enter__将在进入with语句时被调用并返回由as变量绑定的对象
+    __exit__将在离开with语句时被调用,且可以用参数来判断在离开with语句时是否有异常发生并做出相应的处理
+
+示例:
+  context_mananger.py
+
+
+
+
+运算符重载
+  什么是运算符重载
+    让自定义的类生成的对象(实例)能够使用运算符进行操作
+
+  作用:
+    1. 让自定义的类的实例能够运行运算符操作
+    2. 让程序简洁易读
+    3. 对自定义对象将运算符赋序新的运算规则
+  说明:
+    运算符重载方法的参数已经有固定的含义,不建议改变原有的意义
+
+算术运算符重载
+       方法名               运算符和表达式   说明
+ __add__(self, rhs)         self +  rhs    加法
+ __sub__(self, rhs)         self -  rhs    减法
+ __mul__(self, rhs)         self *  rhs    乘法
+ __truediv__(self, rhs)     self /  rhs    除法
+ __floordiv__(self, rhs)    self // rhs    地板除
+ __mod__(self, rhs)         self %  rhs    取模(求余)
+ __pow__(self, rhs)         self ** rhs    幂
+
+  rhs(right hand side) 右手边
+反向算术运算符的重载
+  当运算符的左侧为内建类型,右侧为自义类型的对象进行算术运算符运算时,会出现TypeError错误,
+  因无法修改内建类的代码来实现运算符重载,此时需要使用反向算术运算符重载
+
+反向算术运算符重载
+       方法名               运算符和表达式   说明
+ __radd__(self, lhs)        lhs +  self    加法
+ __rsub__(self, lhs)        lhs -  self    减法
+ __rmul__(self, lhs)        lhs *  self    乘法
+ __rtruediv__(self, lhs)    lhs /  self    除法
+ __rfloordiv__(self, lhs)   lhs // self    地板除
+ __rmod__(self, lhs)        lhs %  self    取模(求余)
+ __rpow__(self, lhs)        lhs ** self    幂
+
+  lhs(left hand side) 右手边
+
+示例见:
+  mylist_imul.py
+
+
+
+复合赋值算术运算符的重载
+  以复合赋值算术运算符  x += y 为例,此运算会优先调用x.__iadd__(y) 方法,
+  如果没有__iadd__方法时会将复合赋值运算拆解为 x = x + y,然后调用x = x.__add__(y) 方法
+  如果再不存在 __add__方法则会触发TypeError异常
+
+  其它复合赋值运算符也具有相同的规则
+
+复合赋值算术运算符重载
+       方法名               运算符和表达式   说明
+ __iadd__(self, lhs)        lhs +=  self    加法
+ __isub__(self, lhs)        lhs -=  self    减法
+ __imul__(self, lhs)        lhs *=  self    乘法
+ __itruediv__(self, lhs)    lhs /=  self    除法
+ __ifloordiv__(self, lhs)   lhs //= self    地板除
+ __imod__(self, lhs)        lhs %=  self    取模(求余)
+ __ipow__(self, lhs)        lhs **= self    幂
+
+
+
+
+问题:
+  L = [1, 2, 3]
+  def f1(lst):
+      lst += [4, 5, 6]
+
+  f1(L)
+  print(L)  # [1, 2, 3, 4, 5, 6]  为什么
+
+  L = (1, 2, 3)
+  def f1(lst):
+      lst += (4, 5, 6)  # lst = lst + (4, 5, 6)
+  f1(L)
+  print(L)  # (1, 2, 3)  为什么
+
+比较运算符的重载
+
+复合赋值算术运算符重载
+       方法名               运算符和表达式   说明
+ __lt__(self, rhs)        self <   rhs    小于
+ __le__(self, rhs)        self <=  rhs    小于等于
+ __gt__(self, rhs)        self >   rhs    大于
+ __ge__(self, rhs)        self >=  rhs    大于等于
+ __eq__(self, rhs)        self ==  rhs    等于
+ __ne__(self, rhs)        self !=  rhs    不等于
+
+示例见:
+  compare.py
+
+
+位运算符重载
+       方法名               运算符和表达式   说明
+ __invert__(self)          ~ self      取反(一元运算符)
+ __and__(self, rhs)        self &  rhs    位与
+ __or__(self, rhs)         self |  rhs    位或
+ __xor__(self, rhs)        self ^  rhs    位异或
+ __lshift__(self, rhs)     self << rhs    左移
+ __rshift__(self, rhs)     self >> rhs    右移
+
+反向位运算符重载
+       方法名               运算符和表达式   说明
+ __rand__(self, lhs)        lhs &  self    位与
+ __ror__(self, lhs)         lhs |  self    位或
+ __rxor__(self, lhs)        lhs ^  self    位异或
+ __rlshift__(self, lhs)     lhs << self    左移
+ __rrshift__(self, lhs)     lhs >> self    右移
+
+复合赋值位运算符重载
+       方法名               运算符和表达式   说明
+ __iand__(self, rhs)        self &=  rhs    位与
+ __ior__(self, rhs)         self |=  rhs    位或
+ __ixor__(self, rhs)        self ^=  rhs    位异或
+ __ilshift__(self, rhs)     self <<= rhs    左移
+ __irshift__(self, rhs)     self >>= rhs    右移
+
+
+
+
+一元运算符重载
+       方法名               运算符和表达式   说明
+ __invert__(self)          ~ self      取反(一元运算符)
+ __pos__(self)             + self      正号
+ __neg__(self)             - self      负号
+
+语法:
+   def __xxx__(self):
+       ...
+示例见:
+   one_operator.py
+
+
+
+in / not in 运算符重载
+重载方法:
+  def __contains__(self, e):
+      ....
+
+示例见:
+  in_not_in.py
+
+
+索引和切片运算符的重载
+  方法名                  运算符和表达式     说明
+ __getitem__(self, i)      x = self[i]   索引/切片取值
+ __setitem__(self, i, val) self[i] = val 索引/切片赋值
+ __delitem__(self, i)      del self[i]   删除索引/切片
+
+作用:
+  让自定义的类的对象能够支持索引和切片操作
+
+示列见:
+  index_slice.py
+
+slice 函数:
+  作用:
+    用于创建一个slice切片对象,此对象存储切片的信息
+  格式:
+    slice(start=None, stop=None, step=None)
+  slice对象的属性
+    s.start 切片的起始值, 默认为None
+    s.stop  切片的终止值, 默认为None
+    s.step  切片的步长, 默认为None
+
+PEP8编码规范文档详见:
+    pbase/python_base_docs_html/PEP8编码规范.html
+
+特性属性 @property
+  实现其它语言所拥有的 getter 和 setter 的功能
+
+  作用:
+    用来模拟一个属性
+    通过@property 装饰器可以对模拟属性的取值和赋值加以控制
+  示例见:
+    property.py
+     

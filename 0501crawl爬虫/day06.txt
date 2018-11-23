@@ -1,0 +1,244 @@
+Day05回顾
+1、json模块
+  1、json.loads() 
+    json格式(对象、数组) -> Python(字典、列表)
+  2、json.dumps()
+    Python(字典、元组、列表) -> json(对象、数组)
+2、Ajax动态加载
+  1、抓包工具抓参数 ：WebForms -> QueryString
+  2、params = {QueryString中的一堆查询参数}
+  3、URL地址写 ：抓包工具Raw下的GET地址
+3、selenium+phantomjs
+  1、selenium : Web自动化测试工具
+  2、phantomjs ：无界面浏览器(在内存执行页面加载)
+  3、使用步骤
+    1、导入模块
+      from selenium import webdriver
+      from selenium.webdriver.common.keys import Keys
+    2、创建浏览器对象
+      driver = webdriver.PhantomJS(executable_path="...")
+    3、获取网页信息
+      driver.get(url)
+    4、查找节点位置
+      ele = driver.find_element_by_id("")
+    5、发送文字
+      ele.send_keys("")
+    6、点击
+      cli = driver.find_element_by_class_name("")
+      cli.click()
+    7、关闭
+      driver.quit()
+  4、常用方法
+    1、driver.get(url)
+    2、driver.page_source
+    3、driver.page_source.find("字符串")
+      失败 ：-1
+      成功 ：非-1
+    4、driver.find_element_by_name("属性值")
+    5、driver.find_elements_by_xpath("xpath表达式")
+    6、对象名.send_keys("")
+    7、对象名.click()
+    8、对象名.text
+    9、driver.quit()
+4、selenium+chromedriver
+  1、chromedriver
+    Chrome的Webdriver
+  2、安装
+    1、下载对应版本的chromedriver安装包
+      https://chromedriver.storage.googleapis.com/index.html
+    2、将 chromedriver.exe 放到python安装目录的Scripts目录
+  3、如何设置无界面模式
+    opt = webdriver.ChromeOptions()
+    opt.set_headless()
+
+    driver = webdriver.Chrome(options=opt)
+    driver.get(...)
+  4、driver如何执行javascript
+    driver.execute_script('window.scrollTo(0,document.body.scrollHeight)')
+*****************************************
+Day06笔记
+1、多线程爬虫
+  1、进程线程回顾
+    1、进程
+      1、系统中正在运行的一个应用程序
+      2、1个CPU核心1次只能执行1个进程,其他进程处于非运行状态
+      3、N个CPU核心可同时执行N个任务
+    2、线程
+      1、进程中包含的执行单元,1个进程可包含多个线程
+      2、线程可使用所属进程空间(1次只能执行1个线程,阻塞)
+      3、锁 ：防止多个线程同时使用共享空间
+    3、GIL ：全局解释锁
+      执行通行证,仅此1个,拿到了通行证可执行,否则 等
+    4、应用场景
+      1、多进程：大量的密集的计算
+      2、多线程：I/O密集
+        爬虫 ：网络I/O
+	写文件：本次磁盘I/O
+  2、案例 ：使用多线程爬取 百思不得其姐 段子
+    1、爬取目标 ：段子内容
+    2、URL ：http://www.budejie.com/
+    3、xpath表达式 
+      //div[@class="j-r-list-c-desc"]/a/text()
+    4、知识点
+      1、队列(from queue import Queue)
+        put()
+	get()
+	Queue.empty() ：是否为空
+	Queue.join()  ：如果队列为空,执行其他程序
+      2、线程(import threading)
+        threading.Thread(target=...)
+    5、代码实现 
+      见 ：01_多线程爬取百思不得其姐案例.py
+2、BeautifulSoup
+  1、定义
+    HTML或XML的解析器,依赖于lxml
+  2、安装
+    python -m pip install beautifulsoup4
+    导模块：
+      from bs4 import BeautifulSoup
+  3、使用流程
+    1、导入模块
+      from bs4 import BeautifulSoup
+    2、创建解析对象 
+      soup = BeautifulSoup(html,'lxml')
+    3、查找节点对象
+      soup.find_all(name="属性值")
+  4、示例代码 ：见 02_BeautifulSoup示例.py
+  5、BeautifulSoup支持的解析库
+    1、lxml         ：BeautifulSoup(html,'lxml')
+        速度快,文档容错能力强
+    2、python标准库 ：BeautifulSoup(html,'html.parser')
+        速度一般
+    3、xml解析器    ：BeautifulSoup(html,'xml')
+        速度快,文档容错能力强
+  6、节点选择器
+    1、选择节点
+      soup.节点名 ：soup.a、soup.ul
+    2、获取文本内容
+      soup.节点名.string
+  7、常用方法
+    1、find_all() ：返回列表
+      1、r_list = soup.find_all(属性名="属性值")
+         r_list = soup.find_all(class_="test")
+      2、r_list=soup.find_all("节点名",attrs={"名":"值"})
+         r_list=soup.find_all("div",attrs={"class":"test"}
+3、Scrapy框架安装(Ubuntu)
+  1、安装依赖库
+    sudo apt-get install python3-dev build-essential libssl-dev libffi-dev liblxml2 libxml2-dev libxslt1-dev zlib1g-dev
+  2、升级pyasn1模块
+    sudo pip3 install pyasn1==0.4.4
+  3、安装Scrapy
+    sudo pip3 install Scrapy
+4、Scrapy框架
+  1、Scrapy框架
+    异步处理框架,可配置和可扩展程度非常高,Python中使用最广泛的爬虫框架
+  2、框架组成
+    1、引擎(Engine) ：整个框架核心
+    2、调度器(Scheduler) ：接受从引擎发过来的URL,入队列
+    3、下载器(Downloader)：下载网页源码,返回给爬虫程序
+    4、项目管道(Item Pipeline) ：数据处理
+    5、下载器中间件(Downloader Middlewares)
+      处理引擎与下载器之间的请求与响应
+    6、蜘蛛中间件(Spider Middlerwares)
+      处理爬虫程序输入响应和输出结果以及新的请求
+    7、Item ：定义爬取结果的数据结构,爬取的数据会被赋值为Item对象
+  3、Scrapy框架的爬取流程
+    见 Scrapy框架流程.png
+  4、制作Scrapy爬虫项目步骤
+    1、新建项目
+      scrapy startproject 项目名
+    2、明确目标(items.py)
+    3、制作爬虫程序
+      XXX/spiders ：scrapy genspider 文件名 域名
+    4、处理数据(pipelines.py)
+    5、配置settings.py
+    6、运行爬虫项目
+      scrapy crawl 爬虫名
+  5、scrapy项目文件详解
+    1、目录结构
+	testspider/
+	├── scrapy.cfg   #项目基本配置文件,不用改
+	└── testspider
+	    ├── __init__.py
+	    ├── items.py       # 定义爬取数据的结构
+	    ├── middlewares.py # 下载器中间件和蜘蛛中间件实现
+	    ├── pipelines.py   # 处理数据
+	    ├── settings.py    # 项目全局配置
+	    └── spiders        # 存放爬虫程序
+		├── __init__.py
+		├── myspider.py
+    2、settings.py配置
+      # 是否遵守robots协议,该为False
+      ROBOTSTXT_OBEY = False
+
+      # 最大并发量,默认为16个
+      CONCURRENT_REQUESTS = 32
+
+      # 下载延迟时间为3秒
+      DOWNLOAD_DELAY = 3
+
+      # 请求报头
+      DEFAULT_REQUEST_HEADERS = {
+        'User-Agent': "Mozilla/5.0",
+         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+         'Accept-Language': 'en',
+        }
+
+      # 蜘蛛中间件
+      SPIDER_MIDDLEWARES = {
+         'testspider.middlewares.TestspiderSpiderMiddleware': 543,
+        }
+
+      # 下载器中间件
+      DOWNLOADER_MIDDLEWARES = {
+         'testspider.middlewares.TestspiderDownloaderMiddleware': 543,
+        }
+
+      # 管道文件
+      ITEM_PIPELINES = {
+         'testspider.pipelines.TestspiderPipeline': 300,
+      }
+    3、示例 ：抓取百度首页源码,存到baidu.html中
+      1、scrapy startproject baidu
+      2、cd baidu/baidu
+      3、subl items.py(此示例可不用操作)
+      4、cd spiders
+      5、scrapy genspider baiduspider baidu.com
+        # 爬虫名
+	# 域名
+	# start_urls
+	def parse(self,response):
+	    with open("baidu.html","w") as f:
+	        f.write(response.text)
+      6、subl settings.py
+        1、关闭robots协议
+	2、添加Headers
+      7、cd spiders
+      8、scrapy crawl baiduspider
+5、pycharm运行scrapy项目
+  1、创建文件 begin.py
+    和scrapy.cfg同目录
+    from scrapy import cmdline
+    cmdline.execute("scrapy crawl baiduspider".split())
+  2、在
+    Run -> Editconfigurations -> + -> python
+    name : spider
+    Script : begin.py的路径
+    working directory : 你自己的项目路径
+  3、打开begin.py
+    右上角 -> 点 运行
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

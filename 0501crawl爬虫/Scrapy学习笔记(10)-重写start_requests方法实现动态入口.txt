@@ -1,0 +1,41 @@
+Scrapy学习笔记(10)-重写start_requests方法实现动态入口
+http://jinbitou.net/2018/01/28/2583.html
+前言
+    通过之前的学习我们知道scrapy是将start_urls作为爬取入口，而且每次都是直接硬编码进去一个或多个固定的URL，现在假设有这么个需求：爬虫需要先从数据库里面读取目标URL再依次进行爬取，这时候固定的start_urls就显得不够灵活了，好在scrapy允许我们重写start_requests方法来满足这个需求。
+
+目标
+从库表scrapy.tab_url里面获取pdf文件的下载地址，将这些pdf文件存放到本机特定目录/home/newspace/pdfs。 
+tab_url表DDL如下：
+
+CREATE TABLE `tab_url` (
+  `id` int(11) NOT NULL,
+  `url` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+代码
+# -*- coding: utf-8 -*-
+from scrapy.spider import BaseSpider
+from scrapy.http import Request
+import MySQLdb
+import os
+
+
+class PdfSpider(BaseSpider):
+    name = "pdfspider"
+    target_dir = "/home/newspace/pdfs"
+    def start_requests(self):
+        db = MySQLdb.connect(host="localhost", user="root", passwd="123456", db="scrapy", charset='utf8',
+                            use_unicode=False)
+        cur = db.cursor()
+        cur.execute("select url from tab_url")
+        for url in cur.fetchall():
+            yield Request(url[0], self.parse)
+        cur.close()
+        db.close()
+
+    def parse(self, response):
+        file_name = response.url.split('/')[-1]
+        full_path = os.path.join(self.target_dir, file_name)
+        self.logger.info('Saving PDF %s', full_path)
+        with open(full_path, 'wb') as f:
+            f.write(response.body)

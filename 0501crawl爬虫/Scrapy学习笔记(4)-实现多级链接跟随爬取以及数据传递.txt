@@ -1,0 +1,354 @@
+Scrapy学习笔记(4)-实现多级链接跟随爬取以及数据传递
+http://jinbitou.net/2016/11/19/2204.html
+前言
+    系统环境：CentOS7
+    本文假设你已经安装了virtualenv，并且已经激活虚拟环境ENV1，如果没有，请参考这里：使用virtualenv创建python沙盒（虚拟）环境，
+    在上一篇文章(Scrapy学习笔记(3)-循环爬取以及数据库操作)中我们已经能够跟踪next（下一页）链接循环爬取http://quotes.toscrape.com/中的article和author信息,将结果保存到mysql数据库中，今天我们来写一个稍微实用一点的spider，当然难度也会更大。
+目标
+    爬取链家上的租房信息，实现多级链接跟随爬取(爬取深度>1)，利用Request的meta属性实现不同链接之间已爬取数据的传递,利用集合(set)实现item去重。
+正文
+    1.执行建表语句
+    CREATE TABLE LJRent_raw(
+    id   varchar(20)   NOT NULL,
+    title   varchar(100)   DEFAULT NULL,
+    price   varchar(10)   DEFAULT NULL,
+    type1   varchar(20)   DEFAULT NULL,
+    type2   varchar(20)   DEFAULT NULL,
+    floor   varchar(20)   DEFAULT NULL,
+    decoration   varchar(20)   DEFAULT NULL,
+    builtYear   varchar(20)   DEFAULT NULL,
+    area   varchar(10)   DEFAULT NULL,
+    toward   varchar(5)   DEFAULT NULL,
+    heating   varchar(10)   DEFAULT NULL,
+    cellName   varchar(20)   DEFAULT NULL,
+    cellUrl   varchar(100)   DEFAULT NULL,
+    lastVisit   varchar(5)   DEFAULT NULL,
+    visitIn7Days   varchar(5)   DEFAULT NULL,
+    totalVisits   varchar(5)   DEFAULT NULL,
+    houseAddr   varchar(100)   DEFAULT NULL,
+    longitude   varchar(20)   DEFAULT NULL,
+    latitude   varchar(20)   DEFAULT NULL,
+    cellPropertyFee   varchar(10)   DEFAULT NULL,
+    cellBuildingsNum   varchar(10)   DEFAULT NULL,
+    cellHousesNum   varchar(10)   DEFAULT NULL,
+    cellBuiltYear   varchar(10)   DEFAULT NULL,
+    cellBuildingType   varchar(20)   DEFAULT NULL,
+    cellHouseType   varchar(20)   DEFAULT NULL,
+    cellSecHouseAvgPrice   varchar(10)   DEFAULT NULL,
+    cellSecHouseNum   varchar(5)   DEFAULT NULL,
+    cellSecHouseSoldHis   varchar(5)   DEFAULT NULL,
+    cellAddr   varchar(100)   DEFAULT NULL,
+    cellHousePriceNote   varchar(100)   DEFAULT NULL,
+    PRIMARY KEY (id)
+    )ENGINE=MyISAM DEFAULT CHARSET=utf8;
+2.创建项目
+    [eason@localhost 桌面]$ cd /home/eason/PycharmProjects/
+    [eason@localhost PycharmProjects]$ source ../ENV1/bin/activate#激活虚拟环境
+    (ENV1) [eason@localhost PycharmProjects]$ scrapy startproject LJ_Rent#创建项目
+    New Scrapy project 'LJ_Rent', using template directory '/home/eason/ENV1/lib/python2.7/site-packages/scrapy/templates/project', created in:
+        /home/eason/PycharmProjects/LJ_Rent
+
+    You can start your first spider with:
+        cd LJ_Rent
+        scrapy genspider example example.com
+3.创建spider
+    (ENV1) [eason@localhost PycharmProjects]$ cd LJ_Rent/
+    (ENV1) [eason@localhost LJ_Rent]$ pwd
+    /home/eason/PycharmProjects/LJ_Rent
+    (ENV1) [eason@localhost LJ_Rent]$ scrapy genspider lianjia_spider m.lianjia.com
+    Created spider 'lianjia_spider' using template 'basic' in module:
+      LJ_Rent.spiders.lianjia_spider
+    (ENV1) [eason@localhost LJ_Rent]$
+4.编辑items.py
+    # -*- coding: utf-8 -*-
+
+    # Define here the models for your scraped items
+    #
+    # See documentation in:
+    # http://doc.scrapy.org/en/latest/topics/items.html
+
+    import scrapy
+
+    class LjRentItem(scrapy.Item):
+        # define the fields for your item here like:
+        id = scrapy.Field()
+        metroInfo = scrapy.Field()
+        title = scrapy.Field()
+        price = scrapy.Field()
+        type1 = scrapy.Field()
+        type2 = scrapy.Field()
+        floor = scrapy.Field()
+        decoration = scrapy.Field()
+        builtYear = scrapy.Field()
+        area = scrapy.Field()
+        toward = scrapy.Field()
+        heating = scrapy.Field()
+        cellName = scrapy.Field()
+        houseUrl= scrapy.Field()
+        cellUrl = scrapy.Field()
+        lastVisit = scrapy.Field()
+        visitIn7Days = scrapy.Field()
+        totalVisits = scrapy.Field()
+        houseAddr = scrapy.Field()
+        longitude = scrapy.Field()
+        latitude = scrapy.Field()
+        cellPropertyFee = scrapy.Field()
+        cellBuildingsNum = scrapy.Field()
+        cellHousesNum = scrapy.Field()
+        cellBuiltYear = scrapy.Field()
+        cellBuildingType = scrapy.Field()
+        cellHouseType = scrapy.Field()
+        cellSecHouseAvgPrice = scrapy.Field()
+        cellSecHouseNum = scrapy.Field()
+        cellSecHouseSoldHis = scrapy.Field()
+        cellAddr = scrapy.Field()
+        cellHousePriceNote = scrapy.Field()
+5.编辑pipelines.py
+    # -*- coding: utf-8 -*-
+
+    # Define your item pipelines here
+    #
+    # Don't forget to add your pipeline to the ITEM_PIPELINES setting
+    # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
+    from scrapy.exceptions import DropItem
+    import MySQLdb
+    import MySQLdb.cursors
+    from twisted.enterprise import adbapi
+
+
+    class LjRentPipeline(object):
+        def __init__(self):
+            self.ids_seen = set()#初始化一个无序不重复集和ids_seen
+            db_args = dict(
+                host="127.0.0.1",  # 数据库主机ip
+                db="scrapy",  # 数据库名称
+                user="root",  # 用户名
+                passwd="123456",  # 密码
+                charset='utf8',  # 数据库字符编码
+                cursorclass=MySQLdb.cursors.DictCursor,  # 以字典的形式返回数据集
+                use_unicode=True,
+            )
+            self.dbpool = adbapi.ConnectionPool('MySQLdb', **db_args)
+
+        def process_item(self, item, spider):
+            if item['id'] in self.ids_seen or item['id']=="":#使用id作为i唯一主键
+                raise DropItem("Duplicate or invalid item found: %s" % item)
+            else:
+                self.ids_seen.add(item['id'])
+                self.dbpool.runInteraction(self.insert_into_LJRent_raw, item)
+                return item
+
+        def insert_into_LJRent_raw(self, conn, item):
+            sql_insert='''
+            INSERT INTO LJRent_raw(
+                id,
+                metroInfo,
+                title,
+                price,
+                type1,
+                type2,
+                floor,
+                decoration,
+                builtYear,
+                area,
+                toward,
+                heating,
+                houseUrl,
+                cellName,
+                cellUrl,
+                lastVisit,
+                visitIn7Days,
+                totalVisits,
+                houseAddr,
+                longitude,
+                latitude,
+                cellPropertyFee,
+                cellBuildingsNum,
+                cellHousesNum,
+                cellBuiltYear,
+                cellBuildingType,
+                cellHouseType,
+                cellSecHouseAvgPrice,
+                cellSecHouseNum,
+                cellSecHouseSoldHis,
+                cellAddr,
+                cellHousePriceNote)
+                VALUES('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',\
+                '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')
+            ''' %(
+                item['id'],
+                item['metroInfo'],
+                item['title'],
+                item['price'],
+                item['type1'],
+                item['type2'],
+                item['floor'],
+                item['decoration'],
+                item['builtYear'],
+                item['area'],
+                item['toward'],
+                item['heating'],
+                item['houseUrl'],
+                item['cellName'],
+                item['cellUrl'],
+                item['lastVisit'],
+                item['visitIn7Days'],
+                item['totalVisits'],
+                item['houseAddr'],
+                item['longitude'],
+                item['latitude'],
+                item['cellPropertyFee'],
+                item['cellBuildingsNum'],
+                item['cellHousesNum'],
+                item['cellBuiltYear'],
+                item['cellBuildingType'],
+                item['cellHouseType'],
+                item['cellSecHouseAvgPrice'],
+                item['cellSecHouseNum'],
+                item['cellSecHouseSoldHis'],
+                item['cellAddr'],
+                item['cellHousePriceNote']
+            )
+            #print 'SQL:',sql_insert
+            conn.execute(sql_insert)
+6.编辑linajia_spider.py
+    # -*- coding: utf-8 -*-
+    import scrapy
+    from urlparse import urljoin
+    from scrapy.http import Request
+    from ..items import LjRentItem
+    import re
+    class LianjiaSpiderSpider(scrapy.Spider):
+        name = "lianjia_spider"
+        allowed_domains = ["m.lianjia.com"]
+        start_urls = ['http://m.lianjia.com/wh/zufang']
+        id=2
+
+        def parse(self, response):
+            houseLst=response.xpath("//li[@class='pictext']")
+            next_url="http://m.lianjia.com/wh/zufang/pg%s/" %(self.id)
+            for house in houseLst:
+                url=urljoin("http://m.lianjia.com",house.xpath("a/@href").extract_first())#房屋详情url
+                yield Request(url,callback=self.parse_house_info)
+            #开始爬取下一页
+            self.id+=1
+            yield Request(next_url, callback=self.parse)
+
+        def parse_house_info(self,response):
+            #使用xpath表达式提取房屋信息
+            houseUrl = response.url
+            metroInfo=response.xpath("//section[@class='page page_zufang has_fixbar']/div[@class='mod_box house_detail']/ul[@class='lists']/li[@class='li_item'][5]/div[@class='value box_col']/text()").extract_first()
+            title=response.xpath("//h1[@class='house_title']/text()").extract_first()
+            price=response.xpath("//span[@class='total_price']/em[@class='num']/text()").extract_first()
+            type1=response.xpath("//li[@class='li_item'][1]/div[@class='value box_col'][1]/text()").extract_first()
+            type2 = response.xpath("//li[@class='li_item'][4]/div[@class='value box_col'][2]/text()").extract_first()
+            floor=response.xpath("//li[@class='li_item'][2]/div[@class='value box_col'][1]/text()").extract_first()
+            decoration=response.xpath("//li[@class='li_item'][3]/div[@class='value box_col'][1]/text()").extract_first()
+            builtYear=response.xpath("//li[@class='li_item'][4]/div[@class='value box_col'][1]/text()").extract_first()
+            id=response.xpath("//section[@class='page page_zufang has_fixbar']/div[@class='mod_box house_detail']/ul[@class='lists']/li[@class='li_item'][6]/div[@class='value box_col']/text()").extract_first()
+            area=response.xpath("//li[@class='li_item'][1]/div[@class='value box_col'][2]/text()").extract_first()
+            toward=response.xpath("//li[@class='li_item'][2]/div[@class='value box_col'][2]/text()").extract_first()
+            heating=response.xpath("//li[@class='li_item'][3]/div[@class='value box_col'][2]/text()").extract_first()
+            cellName=response.xpath("//li[@class='li_item arrow']/a[@class='flexbox']/div[@class='value box_col']/text()").extract_first()
+            cellUrl=urljoin("http://m.lianjia.com",response.xpath("//a[@class='flexbox']/@href").extract_first())
+            lastVisit=response.xpath("//div[@class='mod_box house_record']/h3[@class='mod_tit']/small/span/text()").extract_first()
+            visitIn7Days=response.xpath("//div[@class='data flexbox']/div[@class='box_col'][1]/strong/text()").extract_first()
+            totalVisits=response.xpath("//div[@class='data flexbox']/div[@class='box_col'][2]/strong/text()").extract_first()
+            houseAddr=response.xpath("//div[@class='mod_cont gap']/a/div[@class='location_desc']/text()").extract_first()
+            lon_lat_url=response.xpath("//div[@class='mod_box location']/h3/a/@href").extract_first()
+            #正则表达式提取非html文本中的数据
+            longitude=re.search("pos=(.*?),",lon_lat_url).group(1)#正则表达式取经度
+            latitude=re.search(",(.*?)&house_code",lon_lat_url).group(1)#正则表达式取纬度
+
+            item=LjRentItem()
+            #python的三目运算的用法
+            #true_result if condition else false_result
+            item['metroInfo']="" if id is None else metroInfo.strip()
+            item['houseUrl']="" if id is None else houseUrl.strip()
+            item['id'] = "" if id is None else id.strip()
+            item['title'] = "" if title is None else title.strip()
+            item['price'] = "" if price is None else price.strip()
+            item['type1'] = "" if type1 is None else type1.strip()
+            item['type2'] = "" if type2 is None else type2.strip()
+            item['floor'] = "" if floor is None else floor.strip()
+            item['decoration'] = "" if decoration is None else decoration.strip()
+            item['builtYear'] = "" if builtYear is None else builtYear.strip()
+            item['area'] = "" if area is None else area.strip()
+            item['toward'] = "" if toward is None else toward.strip()
+            item['heating'] = "" if heating is None else heating.strip()
+            item['cellName'] = "" if cellName is None else cellName.strip()
+            item['cellUrl'] = "" if cellUrl is None else cellUrl.strip()
+            item['lastVisit'] = "" if lastVisit is None else lastVisit.strip()
+            item['visitIn7Days'] = "" if visitIn7Days is None else visitIn7Days.strip()
+            item['totalVisits'] = "" if totalVisits is None else totalVisits.strip()
+            item['houseAddr'] = "" if houseAddr is None else houseAddr.strip()
+            item['longitude'] = "" if longitude is None else longitude.strip()
+            item['latitude'] = "" if latitude is None else latitude.strip()
+            yield Request(cellUrl,callback=self.parse_cell_info,meta=item)#将item传给parse_cell_info
+
+        def parse_cell_info(self,response):
+            item=response.meta#接收传过来的item
+            #提取小区信息
+            cellPropertyFee=response.xpath("//li[@class='li_item'][1]/div[@class='box_col flexbox']/span[@class='value box_col']/text()").extract_first()
+            cellBuildingsNum=response.xpath("//li[@class='li_item'][2]/div[@class='box_col flexbox'][1]/span[@class='value box_col']/text()").extract_first()
+            cellHousesNum=response.xpath("//li[@class='li_item'][2]/div[@class='box_col flexbox'][2]/span[@class='value box_col']/text()").extract_first()
+            cellBuiltYear=response.xpath("//ul[@class='lists']/li[@class='li_item'][3]/div[@class='box_col flexbox'][2]/span[@class='value box_col']/text()").extract_first()
+            cellBuildingType=response.xpath("//li[@class='li_item'][5]/div[@class='box_col flexbox']/span[@class='value box_col']/text()").extract_first()
+            cellHouseType=response.xpath("//ul[@class='lists']/li[@class='li_item'][6]/div[@class='box_col flexbox']/span[@class='value box_col']/text()").extract_first()
+            cellSecHouseAvgPrice=response.xpath("//div[@class='mod_box house_chart']/h3[@class='chart_head']/span[@class='red']/text()").extract_first()
+            cellSecHouseNum=response.xpath("//h3[@class='mod_tit'][1]/a[@class='arrow']/span[@class='red']/text()").extract_first()
+            cellSecHouseSoldHis=response.xpath("//h3[@class='mod_tit'][2]/a[@class='arrow']/span[@class='red']/text()").extract_first()
+            cellAddr=response.xpath("//div[@class='mod_box location']/div[@class='mod_cont']/a/div[@class='location_desc']/text()").extract_first()
+            cellHousePriceNote=response.xpath("//div[@class='mod_box house_chart']/h3[@class='chart_head']/p/text()").extract_first()
+
+            item['cellPropertyFee'] = "" if cellPropertyFee is None else cellPropertyFee.strip()
+            item['cellBuildingsNum'] = "" if cellBuildingsNum is None else cellBuildingsNum.strip()
+            item['cellHousesNum'] = "" if cellHousesNum is None else cellHousesNum.strip()
+            item['cellBuiltYear'] = "" if cellBuiltYear is None else cellBuiltYear.strip()
+            item['cellBuildingType'] = "" if cellBuildingType is None else cellBuildingType.strip()
+            item['cellHouseType'] = "" if cellHouseType is None else cellHouseType.strip()
+            item['cellSecHouseAvgPrice'] = "" if cellSecHouseAvgPrice is None else cellSecHouseAvgPrice.strip()
+            item['cellSecHouseNum'] = "" if cellSecHouseNum is None else cellSecHouseNum.strip()
+            item['cellSecHouseSoldHis'] = "" if cellSecHouseSoldHis is None else cellSecHouseSoldHis.strip()
+            item['cellAddr'] = "" if cellAddr is None else cellAddr.strip()
+            item['cellHousePriceNote'] = "" if cellHousePriceNote is None else cellHousePriceNote.strip()
+
+            yield item
+7.编辑settings.py
+    # -*- coding: utf-8 -*-
+
+    # Scrapy settings for LJ_Rent project
+    #
+    # For simplicity, this file contains only settings considered important or
+    # commonly used. You can find more settings consulting the documentation:
+    #
+    #     http://doc.scrapy.org/en/latest/topics/settings.html
+    #     http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
+    #     http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
+
+    BOT_NAME = 'LJ_Rent'
+
+    SPIDER_MODULES = ['LJ_Rent.spiders']
+    NEWSPIDER_MODULE = 'LJ_Rent.spiders'
+
+
+    # Crawl responsibly by identifying yourself (and your website) on the user-agent
+    #USER_AGENT = 'LJ_Rent (+http://www.yourdomain.com)'
+
+    # Obey robots.txt rules
+    ROBOTSTXT_OBEY = True
+
+
+    ITEM_PIPELINES = {
+       'LJ_Rent.pipelines.LjRentPipeline': 300,
+    }
+
+    DOWNLOAD_DELAY = 0.5
+8.开始爬取
+    (ENV1) [eason@localhost LJ_Rent]$ scrapy crawl lianjia_spider
+9.查看结果：
+    Scrapy学习笔记(4)-实现多级链接跟随爬取以及数据传递
+10.可以看到数据已经成功爬取到数据库，
+    有了raw data，下面的活儿就是清洗和加工了，
+    数据加工好以后就可以随便DIY了，比如用Power BI做个报表，长下面这样….
+11.Done!

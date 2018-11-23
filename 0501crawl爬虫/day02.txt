@@ -1,0 +1,200 @@
+Day01回顾
+1、请求模块(urllib.request)
+  1、Request(url,data=data,headers=headers)
+  2、urlopen(请求对象)
+2、响应对象res的方法
+  1、res.read() ##数据类型：bytes
+     res.read().decode("utf-8") ## 数据类型 ：string
+  2、res.getcode()
+  3、res.geturl()
+3、url编码模块(urllib.parse)
+  1、urlencode(字典) 
+    原始数据 ：kw={"kw":"只手遮天"}
+    urlencode后 ：kw=%e8%e5%d3...  #字符串
+  2、quote(字符串)
+    s = "只手遮天"
+    quote后：%e8%e5%d3...
+  3、unquote()
+4、数据爬取步骤
+  1、找URL(拼接)
+  2、获取响应内容
+  3、保存
+5、请求方式
+  1、GET ：查询参数在URL地址上显示
+  2、POST(参数名data) ：查询参数在Form表单里
+    注意：data一定要为bytes数据类型
+      data = {....}
+      data = urlencode(data)  # 字符串
+      data = bytes(data,"utf-8") # 字符串 -> 字节流
+      data.encode("utf-8")
+*****************************
+Day02笔记
+1、解析
+  1、数据的分类
+    1、结构化数据
+      特点 ：有固定的格式,如 ：HTML、XML、JSON
+    2、非结构化数据
+      示例 ：图片、音频、视频,这类数据一般都存储为二进制
+  2、正则表达式re
+    1、使用流程
+      1、创建编译对象 ：p = re.compile("正则表达式")
+      2、对字符串匹配 ：r = p.match("字符串")
+      3、获取匹配结果 ：print(r.group())
+    2、常用方法
+      1、match(s) ：字符串开头的第1个,返回对象
+      2、search(s)：从开始往后找,匹配第1个,返回对象
+      3、group()  ：从match或search返回对象中取值
+      4、findall()：所有全部匹配,返回一个列表
+    3、表达式
+      .  匹配任意字符(不能匹配\n)
+      \d 数字
+      \s 空白字符
+      \S 非空白字符  
+      [...] 包含[]内容 ：A[BCD]E  --> ABE  ACE  ADE 
+      \w 字母、数字、_
+
+      *  0次或多次
+      ?  0次或1次
+      +  1次或多次
+      {m} m次
+      {m,n} m-n次  AB{1,3}C --> ABC ABBC ABBBC
+
+      贪婪匹配(.*) ：在整个表达式匹配成功的前提下,尽可能多的匹配*
+
+      非贪婪匹配(.*?) ：在整个表达式匹配成功的前提下,尽可能少的匹配*
+    4、示例(贪婪模式和非贪婪模式)
+      见 ：见01_贪婪匹配和非贪婪匹配示例.py
+    5、findall()的分组
+	import re
+	#解释 ：先按照整体匹配出来,然后再匹配()中的
+	# 如果有2个或者多个(),则以元组的方式取显示
+
+	s = "A B C D"
+	p1 = re.compile('\w+\s+\w+')
+	print(p1.findall(s))
+	# ['A B','C D']
+
+	p2 = re.compile('(\w+)\s+\w+')
+	# 第1步 ：['A B','C D']
+	# 第2步 ：['A','C']
+	print(p2.findall(s))
+
+	p3 = re.compile('(\w+)\s+(\w+)')
+	# 第1步 ：['A B','C D']
+	# 第2步 ：[('A','B'),('C','D')]
+	print(p3.findall(s))
+    6、练习
+	<div class="animal">
+	  <p class="name">
+	    <a title="Rabbit"></a>
+	  </p>
+	  
+	  <p class="contents">
+	    Small white rabbit white and white 
+	  </p>
+	</div>
+	p = re.compile('<div class="animal".*?title="(.*?)">.*?contents">(.*?)</p>',re.S)
+    7、案例1 ：内涵段子脑筋急转弯抓取
+      见 ：04_内涵8脑筋急转弯抓取.py
+      网址 ：www.neihan8.com
+      步骤：
+        1、找URL规律
+	 第1页:https://www.neihan8.com/njjzw/
+	 第2页:https://www.neihan8.com/njjzw/index_2.html
+	 第3页:https://www.neihan8.com/njjzw/index_3.html
+	2、用正则匹配出 题目 和 答案
+	  p = re.compile('<div class="text-.*?title="(.*?)".*?<div class="desc">(.*?)</div>',re.S)
+	3、写代码
+	  1、发请求
+	  2、用正则匹配
+	  3、写入本地文件
+    8、猫眼电影top100榜单,存到csv表格文件中
+      网址：猫眼电影 - 榜单 - top100榜
+      目标：抓取电影名、主演、上映时间
+      1、知识点讲解
+        1、csv模块的使用流程
+	  1、打开csv文件
+	    with open("测试.csv","a") as f:
+	  2、初始化写入对象
+	    writer = csv.writer(f)
+	  3、写入数据
+	    writer.writerow(列表)
+	2、示例 见05_csv示例.py
+      2、准备工作
+        1、找URL
+	  第1页：http://maoyan.com/board/4?offset=0
+	  第2页：http://maoyan.com/board/4?offset=10
+	  第n页：
+	    offset = (n-1)*10
+	2、正则匹配
+	  <div class="movie-item-info">.*?title="(.*?)".*?<p class="star">(.*?)</p>.*?releasetime">(.*?)</p>
+	3、写代码
+2、Fiddler常用菜单
+  1、Inspector : 查看抓到的数据包的详细内容
+    1、分为请求(request)和响应(response)两部分
+  2、常用选项
+    1、Headers ：显示客户端发送到服务器的header,包含客户端信息、cookie、传输状态
+    2、WebForms ：显示请求的POST数据 <body>
+    3、Raw ：将整个请求显示为纯文本
+4、请求方式及案例
+  1、GET
+  2、POST
+  3、Cookie模拟登陆
+    1、什么是cookie、session
+      HTTP是一种无连接协议,客户端和服务器交互仅仅限于 请求/响应过程,结束后断开,下一次请求时,服务器会认为是一个新的客户端,为了维护他们之间的连接,让服务器知道这是前一个用户发起的请求,必须在一个地方保存客户端信息。
+      cookie ：通过在客户端记录的信息确定用户身份
+      session ：通过在服务端记录的信息确定用户身份
+    2、案例 ：使用cookie模拟登陆人人网
+      见 ：07_cookie模拟登陆人人网.py
+      步骤：
+        1、通过抓包工具、F12获取到cookie(先登陆1次网站)
+	2、正常发请求
+	url：http://www.renren.com/967469305/profile
+5、requests模块
+  1、安装(用管理员身份去打开Anaconda Prompt)
+    Anaconda   : conda install requests
+    Windows cmd: python -m pip install requests
+      ## 以管理员身份去执行pip安装命令
+  2、常用方法
+    1、get(url,headers=headers) : 发起请求,获取响应对象
+    2、response属性
+      1、response.text ：返回字符串类型
+      2、response.content : 返回bytes类型
+        1、应用场景 ：爬取非结构化数据
+	2、示例
+      3、response.encoding 
+        一般返回 ：ISO-8859-1
+	response.encoding = "utf-8"
+      4、response.status_code ：返回服务器响应码
+      5、response.url ：返回数据的URL地址
+    3、get()使用场景
+      1、没有查询参数
+        res = requests.get(url,headers=headers)
+      2、有查询参数: params={}
+        注 ：params参数必须为字典,自动进行编码
+	见 ：09_requests.get.params.py
+    4、post() 参数名 ：data
+      1、data = {}
+      2、示例 ：10_有道翻译post.py
+
+作业：
+  1、改写代码,用requests模块实现
+  2、链家二手房
+    https://bj.lianjia.com/ershoufang/pg1/
+  3、百度搜索 链家 -> 二手房
+  4、爬取 ：小区名称、总价
+        
+        
+      
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,86 @@
+<<Python 基础 >>
+简介
+  python的诞生
+    创建人: Guido van Rossum (荷兰人)
+    时  间: 1989年
+
+  python语言的应用领域：
+    系统运维
+    网络编程(搜索引擎，爬虫，服务器编程)
+    科学计算
+    人工智能,机器人
+    web 开发
+    云计算
+    大数据及数据库编程
+    教育
+    游戏，图像处理
+    其它。。。
+优缺点:
+  优点:
+    面向对象(Java, C++, Python, C#, Swift)
+    免费
+    可移植 (Windows, Linux, Unix, IOS, 安卓)
+    可混合编程(C / C++ / Java / .net )
+    简单易学易用
+    应用领域广泛
+    开源
+  缺点:
+    与 C/C++相比，执行速度不够快
+    不能封闭源代码
+
+python的官网
+  https://www.python.org
+
+python的版本
+  python V2.7 (2020年结束维护)
+  python V3.5 (当前教学)
+  python V3.8 (最新)
+
+
+python 的运行:
+  python的解释执行器的类型
+    CPython   （C语言开发)
+    Jython     (Java语言开发)
+    IronPython (.net开发)
+    PyPy       (Python语言开发)
+
+
+
+第一个python程序
+  编写: hello.py
+    
+  执行python程序
+    $ python3 文件路径名.py
+  例:
+    $ python3 /home/tarena/aid1806/pbase/day01/hello.py
+
+常用的文件后缀:
+   .py            python语言后缀
+   .c             C语言
+   .cpp/.cc/.cxx  C++语言后缀
+   .java          Java语言后缀
+
+在python交互模式下编写并执行代码
+  进入交互模式:
+    $ python3 <回车>
+  退出交互模式:
+    >>> quit() <回车>
+    >>> exit() <回车>
+    或输入: ctrl + d (输入文件结束符)
+  
+python 的注释
+  以 # 开头， 直至行尾
+  作用:
+    让注释内容不参加解释执行
+
+  sublime 注释快捷键  ctrl + /
+
+python 程序的组成:
+    程序是由模块组成
+    模块是由数据，函数，类等组成
+    函数由语句组成
+    语句由表达式组成
+
+python 的核心数据类型
+  数字(整型数int,浮点型数float，复数complex， 布尔型bool)
+  字符串 str, 列表 list 等

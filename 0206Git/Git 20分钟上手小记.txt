@@ -1,0 +1,84 @@
+Git 20分钟上手小记
+http://jinbitou.net/2016/11/18/2191.html
+本地仓库搭建
+	1.创建本地仓库目录，并进入目录中执行git init命令把这个目录变成Git可以管理的仓库，目录名字假如叫python-snippets
+		[eason@localhost ~]$ mkdir PycharmProjects/python-snippets
+		[eason@localhost ~]$ cd PycharmProjects/python-snippets
+		[eason@localhost python-snippets]$ git init
+			初始化空的 Git 版本库于 /home/eason/PycharmProjects/python-snippets/.git/
+		[eason@localhost python-snippets]$
+			瞬间Git就把仓库建好了，而且告诉你是一个空的仓库，细心的读者可以发现当前目录下多了一个.git的目录，这个目录是Git来跟踪管理版本库的，没事千万不要手动修改这个目录里面的文件，不然改乱了，就把Git仓库给破坏了。如果你没有看到.git目录，那是因为这个目录默认是隐藏的，用ls -ah命令就可以看见。
+	2.配置Git
+		建好空仓库之后首先需要配置的就是用户的用户名和email，因为这些内容会出现在你的每一个提交（commit）里面，在仓库目录执行如下命令：
+		[eason@localhost python-snippets]$ git config --global user.name eason
+		[eason@localhost python-snippets]$ git config --global user.email wangyisheng2014@hotmail.com
+			Git的配置信息分为全局和项目两种，上面命令中带了“–global”参数，这就意味是在进行全局配置，它会影响本机上的每个一个Git项目。我们也可以为每个项目设定不同的配置信息。进入Git项目所在目录执行以上两条命令的时候不带–global参数即可
+	3.创建代码文件并提交到本地仓库
+		[eason@localhost python-snippets]$ touch xiachufang.py
+		[eason@localhost python-snippets]$ vi xiachufang.py
+			Git 20分钟上手小记
+		[eason@localhost python-snippets]$ git add xiachufang.py
+		[eason@localhost python-snippets]$ git commit -m "this is a test file"
+		[master（根提交） 0a1e976] this is a test file
+			 1 file changed, 16 insertions(+)
+			 create mode 100644 xiachufang.py
+		[eason@localhost python-snippets]$
+	4.用git log查看当前仓库的提交（commit）日志
+		[eason@localhost python-snippets]$ git log
+			commit 0a1e9768e4d6181c053d373d80a0c35f966ee071
+			Author: eason <wangyisheng2014@hotmail.com>
+			Date:   Thu Nov 17 15:06:22 2016 +0800
+
+				this is a test file
+		[eason@localhost python-snippets]$
+远程仓库创建
+	1.注册或者登录github并进入settings，快捷地址：https://github.com/settings/profile
+	Git 20分钟上手小记
+	2.切换到Repositories并选择”create one”,快捷地址：https://github.com/new
+	Git 20分钟上手小记
+	添加仓库名称和描述，然后点击”Create repository”
+	Git 20分钟上手小记
+	创建成功后，显示如下信息：
+	Git 20分钟上手小记
+本地和远程同步
+	1.根据提示我们知道Git支持HTTPS和SSH两种方式提交代码，这里我使用SSH的方式，但是由于本地Git仓库和GitHub仓库之间的传输是通过SSH加密的，所以我们需要配置验证信息：
+	使用以下命令生成SSH Key：
+	[eason@localhost python-snippets]$ssh-keygen -t rsa -C "youremail@example.com"
+		后面的youremail@example.com改为你在github上注册的邮箱，之后会要求确认路径和输入密码，我们这里使用默认的一路回车就行。成功的话会在~/下生成.ssh文件夹，进去，打开id_rsa.pub，复制里面的key。
+		回到github上，进入 Settings（账户配置），左边选择SSH and GPG Keys，Add SSH Key,title随便填，粘贴在你电脑上生成的key。
+		Git 20分钟上手小记
+		Git 20分钟上手小记
+	2.为了验证是否成功，输入以下命令：
+	[eason@localhost python-snippets]$ ssh -T git@github.com
+		Hi leeyis! You've successfully authenticated, but GitHub does not provide shell access.
+	[eason@localhost python-snippets]$
+		以上提示说明我们已成功连上 Github。
+	3.将本地代码提交至远程仓库
+	[eason@localhost python-snippets]$ git remote add origin git@github.com:leeyis/python-snippets.git
+	[eason@localhost python-snippets]$ git push -u origin masterCounting objects: 3, done.
+		Compressing objects: 100% (2/2), done.
+		Writing objects: 100% (3/3), 502 bytes | 0 bytes/s, done.
+		Total 3 (delta 0), reused 0 (delta 0)
+		To git@github.com:leeyis/python-snippets.git
+	 * [new branch]      master -> master
+		分支 master 设置为跟踪来自 origin 的远程分支 master。
+	[eason@localhost python-snippets]$
+		把本地库的内容推送到远程，用git push命令，实际上是把当前分支master推送到远程，由于远程库是空的，我们第一次推送master分支时，加上了-u参数，Git不但会把本地的master分支内容推送的远程新的master分支，还会把本地的master分支和远程的master分支关联起来，在以后的推送或者拉取时就可以简化命令。
+		推送成功后，可以立刻在GitHub页面中看到远程库的内容已经和本地一模一样：
+		Git 20分钟上手小记
+	远程项目clone
+	[eason@localhost python-snippets]$ rm xiachufang.py
+	[eason@localhost python-snippets]$ ll
+		总用量 0
+	[eason@localhost python-snippets]$ git clone git@github.com:leeyis/python-snippets.git
+		正克隆到 'python-snippets'...
+		remote: Counting objects: 6, done.
+		remote: Compressing objects: 100% (5/5), done.
+		remote: Total 6 (delta 0), reused 3 (delta 0), pack-reused 0
+		接收对象中: 100% (6/6), done.
+	[eason@localhost python-snippets]$ ll
+		总用量 0
+		drwxrwxr-x. 3 eason eason 53 11月 17 16:55 python-snippets
+	[eason@localhost python-snippets]$
+
+	https://github.com/Python3WebSpider/CrackImageCode.git
